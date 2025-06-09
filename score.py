@@ -29,13 +29,13 @@ from utils import extract_gt_file #,inspect zip
 
 # Groundtruth columns and data type.
 GROUNDTRUTH_COLS = {
-    "id": str,
+    "patient_id": str,
     "disease": int,
 }
 
 # Expected columns and data types for predictions file.
 PREDICTION_COLS = {
-    "id": str,
+    "patient_id": str,
     "probability": float,
 }
 
@@ -65,7 +65,7 @@ def score_task1(gt_file: str, pred_file: str) -> dict[str, int | float]:
 
     # Join the two dataframes to ensure the order of the IDs are the same
     # between groundtruth and prediction before scoring.
-    merged = truth.merge(pred, how="left", on="id")
+    merged = truth.merge(pred, how="left", on="patient_id")
     roc = roc_auc_score(merged["disease"], merged["probability"])
     precision, recall, _ = precision_recall_curve(
         merged["disease"], merged["probability"]

@@ -1,4 +1,4 @@
-id,disease
+patient_id,disease
 A_01,1
 A_02,1
 A_03,0
