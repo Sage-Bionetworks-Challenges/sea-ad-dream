@@ -33,7 +33,7 @@ def gt_file(groundtruth_dir):
     """Creates a dummy groundtruth file."""
     truth = pd.DataFrame(
         {
-            "id": ["A_01", "A_02", "A_03"],
+            "patient_id": ["A_01", "A_02", "A_03"],
             "disease": [1, 0, 1],
         }
     )
@@ -47,7 +47,7 @@ def pred_file(temp_dir):
     """Creates a dummy prediction file."""
     pred = pd.DataFrame(
         {
-            "id": ["A_01", "A_02", "A_03"],
+            "patient_id": ["A_01", "A_02", "A_03"],
             "probability": [0.5, 0.5, 0.5],
         }
     )
