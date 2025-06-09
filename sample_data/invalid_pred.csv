@@ -1,4 +1,4 @@
-id,probability,note
+patient_id,probability,note
 A_01,-0.011,invalid value (bad range)
 A_02,NA,invalid value (null)
 A_03,0.092,
