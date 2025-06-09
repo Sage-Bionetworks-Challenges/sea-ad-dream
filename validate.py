@@ -29,13 +29,13 @@ from utils import extract_gt_file #,inspect zip
 
 # Groundtruth columns and data type.
 GROUNDTRUTH_COLS = {
-    "id": str,
+    "patient_id": str,
     "disease": int,
 }
 
 # Expected columns and data types for predictions file.
 PREDICTION_COLS = {
-    "id": str,
+    "patient_id": str,
     "probability": float,
 }
 
@@ -76,9 +76,9 @@ def validate_task1(gt_file: str, pred_file: str) -> list[str] | filter:
             f"Expecting: {str(PREDICTION_COLS)}."
         )
     else:
-        errors.append(vtk.check_duplicate_keys(pred["id"]))
-        errors.append(vtk.check_missing_keys(truth["id"], pred["id"]))
-        errors.append(vtk.check_unknown_keys(truth["id"], pred["id"]))
+        errors.append(vtk.check_duplicate_keys(pred["patient_id"]))
+        errors.append(vtk.check_missing_keys(truth["patient_id"], pred["patient_id"]))
+        errors.append(vtk.check_unknown_keys(truth["patient_id"], pred["patient_id"]))
         errors.append(vtk.check_nan_values(pred["probability"]))
         errors.append(
             vtk.check_values_range(
