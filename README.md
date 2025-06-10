@@ -28,17 +28,14 @@ to STDOUT, e.g.
 
 What it will check for:
 
-- Four columns named `Dataset`, `Mixture_1`, `Mixture_2`, 
-  and `Predicted_Experimental_Values` (extraneous columns 
+- Two columns named `patient_id`, `probability` (extraneous columns 
   will be ignored)
-- `Dataset` values are strings
-- `Mixture_1` and `Mixture_2` are integers
-- `disease_probability` values are floats between 0.0 
+- `patient_id` values are strings
+- `probability` values are floats between 0.0 
   and 1.0, and cannot be null/None
-- There is exactly one prediction per mixture (so: no missing
-  or duplicated combination of Dataset + Mixture_1 + Mixture_2)
-- There are no extra predictions (so: no unknown combination
-  of Dataset + Mixture_1 + Mixture_2)
+- There is exactly one prediction per ID (so: no missing
+  or duplicated `patient_id`s)
+- There are no extra predictions (so: no unknown `patient_id`s)
 
 ### Score
 
