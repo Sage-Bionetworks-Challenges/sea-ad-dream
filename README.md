@@ -1,7 +1,7 @@
-# AD Pathology Prediction Evaluation
+# SEA-AD DREAM CHallenge Evaluation
 
 Validation and scoring scripts for the
-[Prediction of Alzheimer's Disease Pathology from scTranscriptomic Data DREAM Challenge].
+[SEA-AD DREAM Challenge: Predicting Alzheimer’s Pathology from scRNA-seq Data].
 
 ## Evaluation Overview
 
@@ -48,4 +48,4 @@ python score.py \
 If `-o/--output` is not provided, then results will output
 to `results.json`.
 
-[Prediction of Alzheimer's Disease Pathology from scTranscriptomic Data DREAM Challenge]: https://www.synapse.org/Synapse:syn66496696/wiki/632412
+[SEA-AD DREAM Challenge: Predicting Alzheimer’s Pathology from scRNA-seq Data]: https://www.synapse.org/Synapse:syn66496696/wiki/632412
