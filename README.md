@@ -1,4 +1,4 @@
-# SEA-AD DREAM CHallenge Evaluation
+# SEA-AD DREAM Challenge Evaluation
 
 Validation and scoring scripts for the
 [SEA-AD DREAM Challenge: Predicting Alzheimer’s Pathology from scRNA-seq Data].
