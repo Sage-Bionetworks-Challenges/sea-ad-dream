@@ -22,26 +22,31 @@ import typer
 from cnb_tools import validation_toolkit as vtk
 from typing_extensions import Annotated
 
-# Uncomment the following if any files are tarfile/zipfiles and require extraction.
-from utils import extract_gt_file #,inspect zip
-
-# ---- CUSTOMIZATION REQUIRED ----
-
 # Groundtruth columns and data type.
 GROUNDTRUTH_COLS = {
-    "patient_id": str,
-    "disease": int,
+    "Donor ID": str,
 }
 
 # Expected columns and data types for predictions file.
 PREDICTION_COLS = {
-    "patient_id": str,
-    "probability": float,
+    "Donor ID": str,
+    "predicted ADNC": str,
+    "predicted Braak": str,
+    "predicted CERAD": str,
+    "predicted Thal": str,
+    "predicted LATE": str,
+    "predicted Lewy": str,
+    "predicted 6e10": float,
+    "predicted AT8": float,
+    "predicted GFAP": float,
+    "predicted NeuN": float,
+    "predicted aSyn": float,
+    "predicted pTDP43": float,
 }
 
 
-def validate_task1(gt_file: str, pred_file: str) -> list[str] | filter:
-    """Sample validation function.
+def validate(gt_file: str, pred_file: str) -> list[str] | filter:
+    """Validation function.
 
     Checks include:
         - Prediction file has the expected columns and data types
@@ -53,9 +58,6 @@ def validate_task1(gt_file: str, pred_file: str) -> list[str] | filter:
 
     Returns a list of error messages. An empty list signifies successful
     validation.
-
-    !!! Note: any updates to this function must maintain the return type
-    of a list of strings.
     """
     errors = []
     truth = pd.read_csv(
@@ -92,31 +94,19 @@ def validate_task1(gt_file: str, pred_file: str) -> list[str] | filter:
     return filter(None, errors)
 
 
-# --- Add more validation functions for different tasks as needed ---
-# def validate_task2(gt_file: str, pred_file: str) -> list[str]:
-#     """Validation function for Task 2.
-
-#     !!! Reminder: return type must be a list.
+# def validate(task_number: int, gt_file: str, pred_file: str) -> list[str] | filter:
 #     """
-#     return []
+#     Routes validation to the appropriate task-specific function.
+#     """
+#     validation_func = {
+#         1: validate_task1,
+#         # --- Add more tasks and their validation functions here ---
+#         # 2: validate_task2,
+#     }.get(task_number)
 
-
-def validate(task_number: int, gt_file: str, pred_file: str) -> list[str] | filter:
-    """
-    Routes validation to the appropriate task-specific function.
-    """
-    validation_func = {
-        1: validate_task1,
-        # --- Add more tasks and their validation functions here ---
-        # 2: validate_task2,
-    }.get(task_number)
-
-    if validation_func:
-        return validation_func(gt_file=gt_file, pred_file=pred_file)
-    return [f"Invalid challenge task number specified: `{task_number}`"]
-
-
-# ----- END OF CUSTOMIZATION -----
+#     if validation_func:
+#         return validation_func(gt_file=gt_file, pred_file=pred_file)
+#     return [f"Invalid challenge task number specified: `{task_number}`"]
 
 
 def main(
@@ -128,12 +118,12 @@ def main(
             help="Path to the prediction file.",
         ),
     ],
-    groundtruth_folder: Annotated[
+    groundtruth_file: Annotated[
         str,
         typer.Option(
             "-g",
             "--groundtruth_file",
-            help="Path to the folder containing the groundtruth file.",
+            help="Path to the groundtruth file.",
         ),
     ],
     task_number: Annotated[
@@ -154,23 +144,10 @@ def main(
     ] = "results.json",
 ):
     """Validates the predictions file in preparation for evaluation."""
-
-    # ----- IMPORTANT: Core Workflow Function Logic -----
-    # This function contains essential logic for interacting with ORCA
-    # workflow. Modifying this function is strongly discouraged and may
-    # cause issues with ORCA. Proceed with caution.
-    # ---------------------------------------------------
-
-    if "INVALID" in predictions_file:
-        with open(predictions_file, encoding="utf-8") as f:
-            errors = [f.read()]
-    else:
-        gt_file = extract_gt_file(groundtruth_folder)
-        errors = validate(
-            task_number=task_number,
-            gt_file=gt_file,
-            pred_file=predictions_file,
-        )
+    errors = validate(
+        gt_file=groundtruth_file,
+        pred_file=predictions_file,
+    )
 
     invalid_reasons = "\n".join(errors)
     status = "INVALID" if invalid_reasons else "VALIDATED"

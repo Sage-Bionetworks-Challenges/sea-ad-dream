@@ -21,6 +21,6 @@ RUN pip install \
     -r requirements.txt
 
 # Copy over validation and scoring scripts.
-COPY --chown=user:user utils.py .
+COPY --chown=user:user dream_evaluation.py .
 COPY --chown=user:user validate.py .
 COPY --chown=user:user score.py .
