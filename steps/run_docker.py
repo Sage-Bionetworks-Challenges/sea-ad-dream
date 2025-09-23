@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import requests
+import tempfile
 
 import docker
 import synapseclient
@@ -76,7 +77,7 @@ def remove_docker_image(client, image_name):
         print(f"Unable to remove image: {image_name}")
 
 
-def run_docker(syn, args, client, timeout=10800):
+def run_docker(syn, args, client, output_dir, timeout=10800):
     """Run Docker model.
 
     If model exceeds timeout (default 3 hours), stop the container.
@@ -85,7 +86,6 @@ def run_docker(syn, args, client, timeout=10800):
     container_name = f"{args.submissionid}-docker_run"
     log_filename = f"{args.submissionid}-docker_logs.txt"
     input_dir = args.input_dir
-    output_dir = os.getcwd()
 
     print("Mounting volumes...")
     volumes = {
@@ -117,7 +117,7 @@ def run_docker(syn, args, client, timeout=10800):
             volumes=volumes,
             name=container_name,
             network_disabled=True,
-            mem_limit="6g",
+            mem_limit="7g",
             stderr=True,
         )
 
@@ -151,6 +151,7 @@ def main(syn, args):
 
     status = "VALID"
     invalid_reasons = ""
+    output_dir = tempfile.mkdtemp()
     if not args.docker_repository and not args.docker_digest:
         status = "INVALID"
         invalid_reasons = "Submission is not a Docker image, please try again."
@@ -166,13 +167,13 @@ def main(syn, args):
             registry="https://docker.synapse.org",
         )
 
-        success, run_error = run_docker(syn, args, client)
+        success, run_error = run_docker(syn, args, client, output_dir)
         if not success:
             status = "INVALID"
             invalid_reasons = run_error
         else:
-            output_folder = os.listdir(os.getcwd())
-            if "predictions.csv" not in output_folder:
+            output_dir_contents = os.listdir(output_dir)
+            if "predictions.csv" not in output_dir_contents:
                 status = "INVALID"
                 invalid_reasons = (
                     "Container did not generate a file called predictions.csv"
