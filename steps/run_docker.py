@@ -151,7 +151,6 @@ def main(syn, args):
     status = "VALID"
     invalid_reasons = ""
     output_dir = args.output_dir
-    os.makedirs(output_dir, exist_ok=True)
 
     if not args.docker_repository and not args.docker_digest:
         status = "INVALID"
