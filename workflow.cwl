@@ -94,8 +94,7 @@ steps:
 
   01_create_docker_config:
     doc: Create a Docker client configuration file using Synapse credentials
-    run: |-
-      https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v4.1/cwl/get_docker_config.cwl
+    run: steps/create_docker_config.cwl
     in:
       - id: synapse_config
         source: "#synapseConfig"
