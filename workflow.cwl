@@ -113,10 +113,10 @@ steps:
         source: "#01_download_submission/docker_digest"
       - id: submissionid
         source: "#submissionId"
-      # - id: docker_registry
-      #   source: "#01_create_docker_config/docker_registry"
-      # - id: docker_authentication
-      #   source: "#01_create_docker_config/docker_authentication"
+      - id: docker_registry
+        source: "#01_create_docker_config/docker_registry"
+      - id: docker_authentication
+        source: "#01_create_docker_config/docker_authentication"
       - id: parentid
         source: "#adminUploadSynId"
       - id: synapse_config

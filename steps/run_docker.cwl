@@ -19,6 +19,10 @@ inputs:
   type: string
 - id: docker_digest
   type: string
+- id: docker_registry
+  type: string
+- id: docker_authentication
+  type: string
 - id: parentid
   type: string
 - id: synapse_config
