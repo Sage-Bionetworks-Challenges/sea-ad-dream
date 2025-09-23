@@ -47,7 +47,7 @@ arguments:
 
 hints:
   DockerRequirement:
-    dockerPull: FIXME
+    dockerPull: ghcr.io/sage-bionetworks-challenges/sea-ad-dream:v0.0.2
 
 s:author:
 - class: s:Person
