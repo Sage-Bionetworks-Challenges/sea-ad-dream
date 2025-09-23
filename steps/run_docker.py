@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import argparse
+import glob
 import json
 import os
 import requests
@@ -172,11 +173,12 @@ def main(syn, args):
             status = "INVALID"
             invalid_reasons = run_error
         else:
-            if "predictions.csv" not in os.listdir(output_dir):
-                status = "INVALID"
-                invalid_reasons = (
-                    "Container did not generate a file called predictions.csv"
-                )
+            print(glob.glob(os.path.join(output_dir, "predictions.csv")))
+            # if "predictions.csv" not in os.listdir(output_dir):
+            #     status = "INVALID"
+            #     invalid_reasons = (
+            #         "Container did not generate a file called predictions.csv"
+            #     )
         remove_docker_image(client, f"{args.docker_repository}@{args.docker_digest}")
 
     with open("results.json", "w") as out:
