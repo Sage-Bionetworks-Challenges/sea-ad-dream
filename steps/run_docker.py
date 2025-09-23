@@ -7,6 +7,7 @@ import glob
 import json
 import os
 import requests
+import tempfile
 
 import docker
 import synapseclient
@@ -151,7 +152,7 @@ def main(syn, args):
 
     status = "VALID"
     invalid_reasons = ""
-    output_dir = args.output_dir
+    
 
     if not args.docker_repository and not args.docker_digest:
         status = "INVALID"
@@ -168,17 +169,18 @@ def main(syn, args):
             registry="https://docker.synapse.org",
         )
 
-        success, run_error = run_docker(syn, args, client, output_dir)
-        if not success:
-            status = "INVALID"
-            invalid_reasons = run_error
-        else:
-            print(glob.glob(os.path.join(output_dir, "predictions.csv")))
-            # if "predictions.csv" not in os.listdir(output_dir):
-            #     status = "INVALID"
-            #     invalid_reasons = (
-            #         "Container did not generate a file called predictions.csv"
-            #     )
+        with tempfile.TemporaryDirectory() as output_dir:
+            success, run_error = run_docker(syn, args, client, output_dir)
+            if not success:
+                status = "INVALID"
+                invalid_reasons = run_error
+            else:
+                print(glob.glob(os.path.join(output_dir, "predictions.csv")))
+                # if "predictions.csv" not in os.listdir(output_dir):
+                #     status = "INVALID"
+                #     invalid_reasons = (
+                #         "Container did not generate a file called predictions.csv"
+                #     )
         remove_docker_image(client, f"{args.docker_repository}@{args.docker_digest}")
 
     with open("results.json", "w") as out:
