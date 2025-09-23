@@ -3,9 +3,11 @@
 from __future__ import print_function
 
 import argparse
+import glob
 import json
 import os
 import requests
+import tempfile
 
 import docker
 import synapseclient
@@ -76,7 +78,7 @@ def remove_docker_image(client, image_name):
         print(f"Unable to remove image: {image_name}")
 
 
-def run_docker(syn, args, client, timeout=10800):
+def run_docker(syn, args, client, output_dir_to_mount, timeout=10800):
     """Run Docker model.
 
     If model exceeds timeout (default 3 hours), stop the container.
@@ -85,7 +87,6 @@ def run_docker(syn, args, client, timeout=10800):
     container_name = f"{args.submissionid}-docker_run"
     log_filename = f"{args.submissionid}-docker_logs.txt"
     input_dir = args.input_dir
-    output_dir = os.getcwd()
 
     print("Mounting volumes...")
     volumes = {
@@ -93,7 +94,7 @@ def run_docker(syn, args, client, timeout=10800):
             "bind": "/input",
             "mode": "ro",
         },
-        output_dir: {
+        output_dir_to_mount: {
             "bind": "/output",
             "mode": "rw",
         },
@@ -149,7 +150,7 @@ def run_docker(syn, args, client, timeout=10800):
 def main(syn, args):
     """Main function."""
 
-    status = "VALID"
+    status = "VALIDATED_DOCKER"
     invalid_reasons = ""
     if not args.docker_repository and not args.docker_digest:
         status = "INVALID"
@@ -166,17 +167,20 @@ def main(syn, args):
             registry="https://docker.synapse.org",
         )
 
-        success, run_error = run_docker(syn, args, client)
-        if not success:
-            status = "INVALID"
-            invalid_reasons = run_error
-        else:
-            output_folder = os.listdir(os.getcwd())
-            if "predictions.csv" not in output_folder:
+        with tempfile.TemporaryDirectory() as output_dir:
+            success, run_error = run_docker(syn, args, client, output_dir)
+            if not success:
                 status = "INVALID"
-                invalid_reasons = (
-                    "Container did not generate a file called predictions.csv"
-                )
+                invalid_reasons = run_error
+            else:
+                output_file = glob.glob(os.path.join(output_dir, "predictions.csv"))
+                if output_file:
+                    os.rename(output_file[0], os.path.join(os.getcwd(), "predictions.csv"))
+                else:
+                    status = "INVALID"
+                    invalid_reasons = (
+                        "Container did not generate a file called predictions.csv"
+                    )
         remove_docker_image(client, f"{args.docker_repository}@{args.docker_digest}")
 
     with open("results.json", "w") as out:
