@@ -26,6 +26,19 @@ from typing_extensions import Annotated
 # Groundtruth columns and data type.
 GROUNDTRUTH_COLS = {
     "Donor ID": str,
+    "Thal": str,
+    "Braak": str,
+    "CERAD": str,
+    "ADNC": str,
+    "LATE": str,
+    "Highest Lewy Body Disease": str,
+    "Cognitive Status": str,
+    "percent 6e10 positive area": float,
+    "percent AT8 positive area": float,
+    "percent NeuN positive area": float,
+    "percent GFAP positive area": float,
+    "percent aSyn positive area": float,
+    "percent pTDP43 positive area": float,
 }
 
 # Expected columns and data types for predictions file.
@@ -35,12 +48,14 @@ PREDICTION_COLS = {
     "predicted Braak": str,
     "predicted CERAD": str,
     "predicted Thal": str,
-    "predicted LATE": str,
-    "predicted Lewy": str,
     "predicted 6e10": float,
     "predicted AT8": float,
     "predicted GFAP": float,
     "predicted NeuN": float,
+}
+OPTIONAL_COLS = {
+    "predicted LATE": str,
+    "predicted Lewy": str,
     "predicted aSyn": float,
     "predicted pTDP43": float,
 }
@@ -79,17 +94,17 @@ def score_task2(gt_file: str, pred_file: str) -> dict[str, int | float]:
         - MSE (Mean Squared Error)
         - R2 (Coefficient of Determination)
     """
+    cols_to_use = [*PREDICTION_COLS] + [*OPTIONAL_COLS]
     pred = pd.read_csv(
         pred_file,
-        usecols=PREDICTION_COLS,
-        dtype=PREDICTION_COLS,
+        usecols=lambda colname: colname in cols_to_use,
         float_precision="round_trip",
     )
     truth = pd.read_csv(
         gt_file,
         usecols=GROUNDTRUTH_COLS,
         dtype=GROUNDTRUTH_COLS,
-    )
+    ).fillna(0)  # TODO: check with Allen folks about NeuN gt
     return goal2_evaluation(
         df_adata=truth,
         df=pred,

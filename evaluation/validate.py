@@ -17,6 +17,7 @@ the appropriate task.
 """
 import json
 
+import numpy as np
 import pandas as pd
 import typer
 from cnb_tools import validation_toolkit as vtk
@@ -40,21 +41,35 @@ PREDICTION_COLS = {
     "predicted AT8": float,
     "predicted GFAP": float,
     "predicted NeuN": float,
+}
+OPTIONAL_COLS = {
     "predicted aSyn": float,
     "predicted pTDP43": float,
 }
+
+
+def check_acceptable_value(col: pd.Series, acceptable_values: set) -> str:
+    """Check if all values in column are accepted values."""
+    invalid_values = set(col.dropna().unique()) - acceptable_values
+    if invalid_values:
+        return (
+            f"Unacceptable values found in column '{col.name}': "
+            f"{', '.join(map(str, invalid_values))}. "
+            f"Acceptable values are: {', '.join(map(str, acceptable_values))}."
+        )
+    return ""
 
 
 def validate(gt_file: str, pred_file: str) -> list[str] | filter:
     """Validation function.
 
     Checks include:
-        - Prediction file has the expected columns and data types
+        - Prediction file has the expected columns
         - There is exactly one prediction for each ID
         - Every ID has a prediction
         - There are no predictions for IDs not present in the groundtruth
-        - Prediction values are not null
-        - Prediction values are between 0 and 1, inclusive
+        - String values are from accepted set of values
+        - Float values are between 0 and 100, inclusive
 
     Returns a list of error messages. An empty list signifies successful
     validation.
@@ -66,29 +81,127 @@ def validate(gt_file: str, pred_file: str) -> list[str] | filter:
         dtype=GROUNDTRUTH_COLS,
     )
     try:
+        cols_to_use = [*PREDICTION_COLS] + [*OPTIONAL_COLS]
         pred = pd.read_csv(
             pred_file,
-            usecols=PREDICTION_COLS,
-            dtype=PREDICTION_COLS,
+            usecols=lambda colname: colname in cols_to_use,
             float_precision="round_trip",
         )
-    except ValueError as err:
+        assert np.isin([*PREDICTION_COLS], pred.columns).all()
+    except AssertionError as err:
         errors.append(
-            f"Invalid column names and/or types: {str(err)}. "
+            f"Prediction file is missing one or more required columns. "
             f"Expecting: {str(PREDICTION_COLS)}."
         )
     else:
-        errors.append(vtk.check_duplicate_keys(pred["patient_id"]))
-        errors.append(vtk.check_missing_keys(truth["patient_id"], pred["patient_id"]))
-        errors.append(vtk.check_unknown_keys(truth["patient_id"], pred["patient_id"]))
-        errors.append(vtk.check_nan_values(pred["probability"]))
+        id_col = "Donor ID"
+        errors.append(vtk.check_duplicate_keys(pred[id_col]))
+        errors.append(vtk.check_missing_keys(truth[id_col], pred[id_col]))
+        errors.append(vtk.check_unknown_keys(truth[id_col], pred[id_col]))
         errors.append(
-            vtk.check_values_range(
-                pred["probability"],
-                min_val=0,
-                max_val=1,
+            check_acceptable_value(
+                pred["predicted ADNC"],
+                {"Not AD", "Low", "Intermediate", "High"},
             )
         )
+        errors.append(
+            check_acceptable_value(
+                pred["predicted Braak"],
+                {
+                    "Braak 0",
+                    "Braak I",
+                    "Braak II",
+                    "Braak III",
+                    "Braak IV",
+                    "Braak V",
+                    "Braak VI",
+                },
+            )
+        )
+        errors.append(
+            check_acceptable_value(
+                pred["predicted CERAD"],
+                {"Absent", "Sparse", "Moderate", "Frequent"},
+            )
+        )
+        errors.append(
+            check_acceptable_value(
+                pred["predicted Thal"],
+                {"Thal 0", "Thal 1", "Thal 2", "Thal 3", "Thal 4", "Thal 5"},
+            )
+        )
+        if "predicted LATE" in pred.columns:
+            errors.append(
+                check_acceptable_value(
+                    pred["predicted LATE"],
+                    {
+                        "Not Identified",
+                        "LATE Stage 1",
+                        "LATE Stage 2",
+                        "LATE Stage 3",
+                        "Unclassifiable",  # TODO: check with Allen folks
+                    },
+                )
+            )
+        if "predicted Lewy" in pred.columns:
+            errors.append(
+                check_acceptable_value(
+                    pred["predicted Lewy"],
+                    {
+                        "Not Identified (olfactory bulb assessed)",
+                        "Olfactory bulb only",
+                        "Amygdala-predominant",
+                        "Brainstem-predominant",
+                        "Limbic (Transitional)",
+                        "Neocortical (Diffuse)",
+                        "Not Identified (olfactory bulb not assessed)",  # TODO: check with Allen folks
+                    },
+                )
+            )
+        errors.append(
+            vtk.check_values_range(
+                pred["predicted 6e10"],
+                min_val=0,
+                max_val=100,
+            )
+        )
+        errors.append(
+            vtk.check_values_range(
+                pred["predicted AT8"],
+                min_val=0,
+                max_val=100,
+            )
+        )
+        errors.append(
+            vtk.check_values_range(
+                pred["predicted GFAP"],
+                min_val=0,
+                max_val=100,
+            )
+        )
+        errors.append(
+            vtk.check_values_range(
+                pred["predicted NeuN"],
+                min_val=0,
+                max_val=100,
+            )
+        )
+        if "predicted aSyn" in pred.columns:
+            errors.append(
+                vtk.check_values_range(
+                    pred["predicted aSyn"],
+                    min_val=0,
+                    max_val=100,
+                )
+            )
+        if "predicted pTDP43" in pred.columns:
+            errors.append(
+                vtk.check_values_range(
+                    pred["predicted pTDP43"],
+                    min_val=0,
+                    max_val=100,
+                )
+            )
 
     # Remove any empty strings from the list before return.
     return filter(None, errors)

@@ -1,4 +1,4 @@
-import anndata as ad
+# import anndata as ad
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -70,7 +70,7 @@ def goal2_evaluation(df_adata, df):
     for i in continous_metrics:
         # MSE, R2, CCC
         merged_df = pd.merge(df_adata, df, left_index=True, right_index=True)
-        y_true = merged_df["percent " + i + " positive area_norm"].to_numpy()
+        y_true = merged_df["percent " + i + " positive area"].to_numpy()
         y_pred = merged_df["predicted " + i].to_numpy()
         y_pred = y_pred[~np.isnan(y_true)]
         y_true = y_true[~np.isnan(y_true)]
