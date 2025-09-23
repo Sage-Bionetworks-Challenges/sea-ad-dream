@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import argparse
 import json
+import glob
 import os
 import requests
 
@@ -172,8 +173,12 @@ def main(syn, args):
             status = "INVALID"
             invalid_reasons = run_error
         else:
-            output_dir_contents = os.listdir(output_dir)
-            if "predictions.csv" not in output_dir_contents:
+            if glob.glob(output_dir + "predictions.csv"):
+                os.rename(
+                    glob.glob(output_dir + "predictions.csv")[0],
+                    os.path.join(os.getcwd(), "predictions.csv"),
+                )
+            else:
                 status = "INVALID"
                 invalid_reasons = (
                     "Container did not generate a file called predictions.csv"
