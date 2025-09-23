@@ -11,8 +11,6 @@ inputs:
   type: File
 - id: groundtruth
   type: File
-- id: entity_type
-  type: string
 - id: previous_annotation_finished
   type: boolean?
 
@@ -34,20 +32,18 @@ outputs:
     outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
     loadContents: true
 
-baseCommand: validate2024.py
+baseCommand: validate.py
 arguments:
 - prefix: -p
   valueFrom: $(inputs.input_file)
 - prefix: -g
   valueFrom: $(inputs.groundtruth.path)
-- prefix: -e
-  valueFrom: $(inputs.entity_type)
 - prefix: -o
   valueFrom: results.json
 
 hints:
   DockerRequirement:
-    dockerPull: ghcr.io/sage-bionetworks-challenges/sea-ad-dream:v0.0.2
+    dockerPull: ghcr.io/sage-bionetworks-challenges/sea-ad-dream:v0.0.3
 
 s:author:
 - class: s:Person
