@@ -125,8 +125,6 @@ steps:
         default: true
       - id: input_dir
         valueFrom: "/home/ec2-user/validation_data"
-      - id: output_dir
-        valueFrom: "/home/ec2-user/output"
       - id: docker_script
         default:
           class: File

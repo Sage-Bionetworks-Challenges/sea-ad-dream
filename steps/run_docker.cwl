@@ -29,8 +29,6 @@ inputs:
   type: File
 - id: input_dir
   type: string
-- id: output_dir
-  type: string
 - id: docker_script
   type: File
 - id: store
@@ -75,8 +73,6 @@ arguments:
   prefix: -c
 - valueFrom: $(inputs.input_dir)
   prefix: -i
-- valueFrom: $(inputs.output_dir)
-  prefix: -o
 
 s:author:
 - class: s:Person
