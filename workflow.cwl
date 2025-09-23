@@ -124,7 +124,7 @@ steps:
       - id: store
         default: true
       - id: input_dir
-        valueFrom: "/tmp"  # TODO
+        valueFrom: "/home/ec2-user/validation_data"
       - id: docker_script
         default:
           class: File
