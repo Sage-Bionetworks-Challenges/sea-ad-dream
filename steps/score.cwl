@@ -11,6 +11,8 @@ inputs:
   type: File
 - id: groundtruth
   type: File
+- id: task_number
+  type: string
 - id: check_validation_finished
   type: boolean?
 
@@ -32,12 +34,14 @@ arguments:
   valueFrom: $(inputs.input_file.path)
 - prefix: -g
   valueFrom: $(inputs.groundtruth.path)
+- prefix: -t
+  valueFrom: $(inputs.task_number)
 - prefix: -o
   valueFrom: results.json
 
 hints:
   DockerRequirement:
-    dockerPull: ghcr.io/sage-bionetworks-challenges/sea-ad-dream:v0.0.2
+    dockerPull: ghcr.io/sage-bionetworks-challenges/sea-ad-dream:v0.0.3
 
 s:author:
 - class: s:Person
