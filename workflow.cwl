@@ -77,6 +77,7 @@ steps:
       - id: docker_digest
       - id: entity_id
       - id: entity_type
+      - id: evaluation_id
       - id: results
 
   01_download_groundtruth:
@@ -230,8 +231,8 @@ steps:
     in:
       - id: input_file
         source: "#02_run_docker/predictions"
-      - id: entity_type
-        source: "#01_download_submission/entity_type"
+      - id: groundtruth
+        source: "#01_download_groundtruth/filepath"
       - id: previous_annotation_finished
         source: "#05_annotate_docker_upload_results/finished"
     out:
@@ -299,6 +300,8 @@ steps:
         source: "#02_run_docker/predictions"
       - id: groundtruth
         source: "#01_download_groundtruth/filepath"
+      - id: task_number
+        source: "#01_download_submission/evaluation_id"
       - id: check_validation_finished
         source: "#08_check_validation_status/finished"
     out:
