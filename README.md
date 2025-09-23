@@ -7,8 +7,20 @@ Validation and scoring scripts for the
 
 Metrics returned and used for ranking are:
 
-- AUC
-- precision-recall
+**Task 1**
+* Quadratic weighted kappa (QWK) on ADNC
+
+Other metrics returned (but _not_ used for ranking) include:
+* Mean absolute errors (MAE)
+* Spearman's rank correlation coefficients
+
+**Task 2**
+* Average Concordance Correlation Coefficients (CCC) computed on the percentages of 6e10 positive area
+* Average CCC on the percentage of AT8 positive area
+
+Other metrics returned (but _not_ used for ranking) include:
+* Mean squared errors (MSE)
+* R^2
 
 ## Usage - Python
 
