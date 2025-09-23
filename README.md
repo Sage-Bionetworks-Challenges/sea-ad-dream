@@ -17,7 +17,7 @@ Metrics returned and used for ranking are:
 ```text
 python validate.py \
   -p PATH/TO/PREDICTIONS_FILE.CSV \
-  -g PATH/TO/GOLDSTANDARD_FILE.CSV [-o RESULTS_FILE]
+  -g PATH/TO/GROUNDTRUTH.CSV [-o RESULTS_FILE]
 ```
 If `-o/--output` is not provided, then results will print
 to STDOUT, e.g.
@@ -28,21 +28,19 @@ to STDOUT, e.g.
 
 What it will check for:
 
-- Two columns named `patient_id`, `probability` (extraneous columns 
-  will be ignored)
-- `patient_id` values are strings
-- `probability` values are floats between 0.0 
-  and 1.0, and cannot be null/None
+- 9 expected columns (with up to 4 optional columns), where:
+  - String values are from accepted sets of values
+  - Float values are between 0 and 100, inclusive
 - There is exactly one prediction per ID (so: no missing
-  or duplicated `patient_id`s)
-- There are no extra predictions (so: no unknown `patient_id`s)
+  or duplicated `Donor ID`s)
+- There are no extra predictions (so: no unknown `Donor ID`s)
 
 ### Score
 
 ```text
 python score.py \
   -p PATH/TO/PREDICTIONS_FILE.CSV \
-  -g PATH/TO/GOLDSTANDARD_FILE.CSV [-o RESULTS_FILE]
+  -g PATH/TO/GROUNDTRUTH_FILE.CSV [-o RESULTS_FILE]
 ```
 
 If `-o/--output` is not provided, then results will output
