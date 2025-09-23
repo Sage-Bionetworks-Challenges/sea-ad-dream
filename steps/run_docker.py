@@ -98,6 +98,7 @@ def run_docker(syn, args, client, output_dir, timeout=10800):
             "mode": "rw",
         },
     }
+    print(volumes)
 
     # Remove any pre-existing container with the same name
     remove_docker_container(client, container_name)
