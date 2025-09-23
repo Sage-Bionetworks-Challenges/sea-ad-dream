@@ -76,7 +76,7 @@ def remove_docker_image(client, image_name):
         print(f"Unable to remove image: {image_name}")
 
 
-def run_docker(syn, args, client, timeout=10800):
+def run_docker(syn, args, client, output_dir, timeout=10800):
     """Run Docker model.
 
     If model exceeds timeout (default 3 hours), stop the container.
@@ -85,7 +85,6 @@ def run_docker(syn, args, client, timeout=10800):
     container_name = f"{args.submissionid}-docker_run"
     log_filename = f"{args.submissionid}-docker_logs.txt"
     input_dir = args.input_dir
-    output_dir = os.getcwd()
 
     print("Mounting volumes...")
     volumes = {
@@ -151,6 +150,9 @@ def main(syn, args):
 
     status = "VALID"
     invalid_reasons = ""
+    output_dir = args.output_dir
+    os.makedirs(output_dir, exist_ok=True)
+
     if not args.docker_repository and not args.docker_digest:
         status = "INVALID"
         invalid_reasons = "Submission is not a Docker image, please try again."
@@ -166,13 +168,12 @@ def main(syn, args):
             registry="https://docker.synapse.org",
         )
 
-        success, run_error = run_docker(syn, args, client)
+        success, run_error = run_docker(syn, args, client, output_dir)
         if not success:
             status = "INVALID"
             invalid_reasons = run_error
         else:
-            output_folder = os.listdir(os.getcwd())
-            if "predictions.csv" not in output_folder:
+            if "predictions.csv" not in os.listdir(output_dir):
                 status = "INVALID"
                 invalid_reasons = (
                     "Container did not generate a file called predictions.csv"
@@ -198,6 +199,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("-d", "--docker_digest", required=True, help="Docker Digest")
     parser.add_argument("-i", "--input_dir", required=True, help="Input Directory")
+    parser.add_argument("-o", "--output_dir", required=True, help="Output Directory")
     parser.add_argument(
         "-c", "--synapse_config", required=True, help="credentials file"
     )
