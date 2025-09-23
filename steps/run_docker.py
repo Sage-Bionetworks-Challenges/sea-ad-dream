@@ -98,7 +98,6 @@ def run_docker(syn, args, client, output_dir, timeout=10800):
             "mode": "rw",
         },
     }
-    print(volumes)
 
     # Remove any pre-existing container with the same name
     remove_docker_container(client, container_name)
@@ -152,7 +151,9 @@ def main(syn, args):
 
     status = "VALID"
     invalid_reasons = ""
-    output_dir = tempfile.mkdtemp()
+    output_dir = args.output_dir
+    tmp_output = tempfile.TemporaryDirectory(dir=output_dir)
+
     if not args.docker_repository and not args.docker_digest:
         status = "INVALID"
         invalid_reasons = "Submission is not a Docker image, please try again."
@@ -168,18 +169,19 @@ def main(syn, args):
             registry="https://docker.synapse.org",
         )
 
-        success, run_error = run_docker(syn, args, client, output_dir)
+        success, run_error = run_docker(syn, args, client, tmp_output)
         if not success:
             status = "INVALID"
             invalid_reasons = run_error
         else:
-            output_dir_contents = os.listdir(output_dir)
+            output_dir_contents = os.listdir(tmp_output)
             if "predictions.csv" not in output_dir_contents:
                 status = "INVALID"
                 invalid_reasons = (
                     "Container did not generate a file called predictions.csv"
                 )
         remove_docker_image(client, f"{args.docker_repository}@{args.docker_digest}")
+        tmp_output.cleanup()
 
     with open("results.json", "w") as out:
         out.write(
@@ -200,6 +202,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("-d", "--docker_digest", required=True, help="Docker Digest")
     parser.add_argument("-i", "--input_dir", required=True, help="Input Directory")
+    parser.add_argument("-o", "--output_dir", default="output", help="Output Directory")
     parser.add_argument(
         "-c", "--synapse_config", required=True, help="credentials file"
     )
