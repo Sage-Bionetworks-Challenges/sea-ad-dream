@@ -150,7 +150,7 @@ def main(
             "--task_number",
             help="Challenge task number for which to validate the predictions file.",
         ),
-    ] = 1,
+    ] = 9616048,
     output_file: Annotated[
         str,
         typer.Option(
