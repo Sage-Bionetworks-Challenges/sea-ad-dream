@@ -22,7 +22,6 @@ import typer
 from dream_evaluation import goal1_evaluation, goal2_evaluation
 from typing_extensions import Annotated
 
-
 # Groundtruth columns and data type.
 GROUNDTRUTH_COLS = {
     "Donor ID": str,
@@ -116,8 +115,10 @@ def score(task_number: int, gt_file: str, pred_file: str) -> dict[str, int | flo
     Routes evaluation to the appropriate task-specific function.
     """
     scoring_func = {
-        1: score_task1,
-        2: score_task2,
+        9616048: score_task1,
+        9616135: score_task1,
+        9616049: score_task2,
+        9616136: score_task2,
     }.get(task_number)
 
     if scoring_func:
@@ -178,9 +179,15 @@ def main(
     except KeyError:
         errors = f"Invalid challenge task number specified: `{task_number}`"
 
+    # Handle edge-case when MSE or R^2 cannot be calculated and returns `nan`.
+    scores = {
+        metric: ("Cannot be calculated" if pd.isnull(score) else score)
+        for metric, score in scores.items()
+    }
+
     res = {
-        "score_status": status,
-        "score_errors": errors,
+        "submission_status": status,
+        "submission_errors": errors,
         **scores,
     }
     with open(output_file, "w", encoding="utf-8") as out:

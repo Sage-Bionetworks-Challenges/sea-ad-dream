@@ -269,8 +269,8 @@ def main(
     if len(invalid_reasons) > 500:
         invalid_reasons = invalid_reasons[:496] + "..."
     res = {
-        "validation_status": status,
-        "validation_errors": invalid_reasons,
+        "submission_status": status,
+        "submission_errors": invalid_reasons,
     }
 
     with open(output_file, "w", encoding="utf-8") as out:
