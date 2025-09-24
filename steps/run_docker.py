@@ -170,7 +170,7 @@ def main(syn, args):
 
         with tempfile.TemporaryDirectory(dir=os.getcwd()) as output_dir:
             # Update permissions so that non-root container can write to it
-            new_permissions = 0o766
+            new_permissions = 0o777
             os.chmod(output_dir, new_permissions)
             updated_permissions = stat.S_IMODE(os.stat(output_dir).st_mode)
             print(f"New permissions verified (octal): {oct(updated_permissions)}")
