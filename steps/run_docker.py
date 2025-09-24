@@ -7,6 +7,7 @@ import glob
 import json
 import os
 import requests
+import stat
 import tempfile
 
 import docker
@@ -78,7 +79,7 @@ def remove_docker_image(client, image_name):
         print(f"Unable to remove image: {image_name}")
 
 
-def run_docker(syn, args, client, output_dir_to_mount, timeout=10800):
+def run_docker(syn, args, docker_client, output_dir_to_mount, timeout=10800):
     """Run Docker model.
 
     If model exceeds timeout (default 3 hours), stop the container.
@@ -101,18 +102,18 @@ def run_docker(syn, args, client, output_dir_to_mount, timeout=10800):
     }
 
     # Remove any pre-existing container with the same name
-    remove_docker_container(client, container_name)
+    remove_docker_container(docker_client, container_name)
 
     print("Pulling submitted Docker image...")
     try:
-        client.images.pull(docker_image)
+        docker_client.images.pull(docker_image)
     except docker.errors.APIError as err:
         errors = f"Unable to pull image: {err}"
         return False, errors
 
     print(f"Running container '{container_name}'...")
     try:
-        container = client.containers.run(
+        container = docker_client.containers.run(
             docker_image,
             detach=True,
             volumes=volumes,
@@ -134,7 +135,7 @@ def run_docker(syn, args, client, output_dir_to_mount, timeout=10800):
             f"Container exceeded execution time limit of {timeout / 60} "
             "minutes; stopping container."
         )
-        remove_docker_container(client, container_name)
+        remove_docker_container(docker_client, container_name)
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         container.remove()
@@ -168,6 +169,10 @@ def main(syn, args):
         )
 
         with tempfile.TemporaryDirectory() as output_dir:
+            # Update permissions so that non-root container can write to it
+            new_permissions = 0o766
+            os.chmod(output_dir, new_permissions)
+
             success, run_error = run_docker(syn, args, client, output_dir)
             if not success:
                 status = "INVALID"
