@@ -185,9 +185,9 @@ steps:
         source: "#03_send_docker_run_status/finished"
     out: [finished]
 
-  04_upload_generated_predictions:
+  05_upload_generated_predictions:
     doc: Upload the generated predictions file to the private folder
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v4.1/cwl/upload_to_synapse.cwl
+    run: steps/upload_predictions.cwl
     in:
       - id: infile
         source: "#02_run_docker/predictions"
@@ -199,12 +199,14 @@ steps:
         source: "#workflowSynapseId"
       - id: synapse_config
         source: "#synapseConfig"
+      - id: check_docker_run_finished
+        source: "#04_check_docker_run_status/finished"
     out:
       - id: uploaded_fileid
       - id: uploaded_file_version
       - id: results
 
-  05_annotate_docker_upload_results:
+  06_annotate_docker_upload_results:
     doc: >
       Add annotations about the uploaded predictions file to the submission
     run: |-
@@ -213,7 +215,7 @@ steps:
       - id: submissionid
         source: "#submissionId"
       - id: annotation_values
-        source: "#04_upload_generated_predictions/results"
+        source: "#05_upload_generated_predictions/results"
       - id: to_public
         default: true
       - id: force
@@ -224,7 +226,7 @@ steps:
         source: "#03_annotate_docker_run_results/finished"
     out: [finished]
 
-  06_validate:
+  07_validate:
     doc: Validate format of generated predictions, prior to scoring
     run: steps/validate.cwl
     in:
@@ -233,13 +235,13 @@ steps:
       - id: groundtruth
         source: "#01_download_groundtruth/filepath"
       - id: previous_annotation_finished
-        source: "#05_annotate_docker_upload_results/finished"
+        source: "#06_annotate_docker_upload_results/finished"
     out:
       - id: results
       - id: status
       - id: invalid_reasons
   
-  07_send_validation_results:
+  08_send_validation_results:
     doc: Send email of the validation results to the submitter
     run: |-
       https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v4.1/cwl/validate_email.cwl
@@ -249,15 +251,15 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: status
-        source: "#06_validate/status"
+        source: "#07_validate/status"
       - id: invalid_reasons
-        source: "#06_validate/invalid_reasons"
+        source: "#07_validate/invalid_reasons"
       # OPTIONAL: set `default` to `false` if email notification about valid submission is needed
       - id: errors_only
         default: true
     out: [finished]
 
-  07_add_validation_annots:
+  08_add_validation_annots:
     doc: Update the submission annotations with validation results
     run: |-
       https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v4.1/cwl/annotate_submission.cwl
@@ -265,7 +267,7 @@ steps:
       - id: submissionid
         source: "#submissionId"
       - id: annotation_values
-        source: "#06_validate/results"
+        source: "#07_validate/results"
       - id: to_public
         default: true
       - id: force
@@ -273,10 +275,10 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: previous_annotation_finished
-        source: "#05_annotate_docker_upload_results/finished"
+        source: "#06_annotate_docker_upload_results/finished"
     out: [finished]
 
-  08_check_validation_status:
+  09_check_validation_status:
     doc: >
       Check the validation status of the submission; if 'INVALID', throw an
       exception to stop the workflow - this will prevent the attempt of
@@ -285,14 +287,14 @@ steps:
       https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v4.1/cwl/check_status.cwl
     in:
       - id: status
-        source: "#06_validate/status"
+        source: "#07_validate/status"
       - id: previous_annotation_finished
-        source: "#07_add_validation_annots/finished"
+        source: "#08_add_validation_annots/finished"
       - id: previous_email_finished
-        source: "#07_send_validation_results/finished"
+        source: "#08_send_validation_results/finished"
     out: [finished]
 
-  09_score:
+  10_score:
     run: steps/score.cwl
     in:
       - id: input_file
@@ -302,12 +304,12 @@ steps:
       - id: task_number
         source: "#01_download_submission/evaluation_id"
       - id: check_validation_finished
-        source: "#08_check_validation_status/finished"
+        source: "#09_check_validation_status/finished"
     out:
       - id: results
       - id: status
       
-  10_send_score_results:
+  11_send_score_results:
     doc: >
       Send email of the evaluation status (optionally with scores) to the submitter
     run: |-
@@ -318,7 +320,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: results
-        source: "#09_score/results"
+        source: "#10_score/results"
       # OPTIONAL: add annotations to be withheld from participants to `[]`
       # - id: private_annotations
       #   default: []
@@ -333,7 +335,7 @@ steps:
       - id: submissionid
         source: "#submissionId"
       - id: annotation_values
-        source: "#09_score/results"
+        source: "#10_score/results"
       - id: to_public
         default: true
       - id: force
@@ -341,7 +343,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: previous_annotation_finished
-        source: "#07_add_validation_annots/finished"
+        source: "#08_add_validation_annots/finished"
     out: [finished]
 
   12_check_score_status:
@@ -352,7 +354,7 @@ steps:
       https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v4.1/cwl/check_status.cwl
     in:
       - id: status
-        source: "#09_score/status"
+        source: "#10_score/status"
       - id: previous_annotation_finished
         source: "#11_add_score_annots/finished"
     out: [finished]
