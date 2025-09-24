@@ -17,8 +17,10 @@ inputs:
   type: int
 - id: docker_repository
   type: string
+  default: ""
 - id: docker_digest
   type: string
+  default: ""
 - id: docker_registry
   type: string
 - id: docker_authentication
