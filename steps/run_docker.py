@@ -140,7 +140,7 @@ def run_docker(syn, args, docker_client, output_dir_to_mount, timeout=10800):
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         container.remove()
         return False, log_text
-    except docker.errors.APIError as err:
+    except (docker.errors.APIError, PermissionError) as err:
         log_text = f"Error running container: {err}"
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
