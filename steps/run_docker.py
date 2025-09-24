@@ -168,7 +168,7 @@ def main(syn, args):
             registry="https://docker.synapse.org",
         )
 
-        with tempfile.TemporaryDirectory() as output_dir:
+        with tempfile.TemporaryDirectory(dir=os.getcwd()) as output_dir:
             # Update permissions so that non-root container can write to it
             new_permissions = 0o766
             os.chmod(output_dir, new_permissions)
