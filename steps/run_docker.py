@@ -118,8 +118,8 @@ def run_docker(syn, args, docker_client, output_dir_to_mount, timeout=10800):
             volumes=volumes,
             name=container_name,
             network_disabled=True,
-            mem_limit="13g",
-            shm_size="2g",
+            mem_limit="12g",
+            shm_size="1g",
             stderr=True,
         )
 
