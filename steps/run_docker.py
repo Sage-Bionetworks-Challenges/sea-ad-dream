@@ -140,7 +140,7 @@ def run_docker(syn, args, docker_client, output_dir_to_mount, timeout=10800):
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         container.remove()
         return False, log_text
-    except (docker.errors.APIError, PermissionError) as err:
+    except Exception as err:
         log_text = f"Error running container: {err}"
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
@@ -172,6 +172,8 @@ def main(syn, args):
             # Update permissions so that non-root container can write to it
             new_permissions = 0o766
             os.chmod(output_dir, new_permissions)
+            updated_permissions = stat.S_IMODE(os.stat(output_dir).st_mode)
+            print(f"New permissions verified (octal): {oct(updated_permissions)}")
 
             success, run_error = run_docker(syn, args, client, output_dir)
             if not success:
