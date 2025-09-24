@@ -7,7 +7,6 @@ import glob
 import json
 import os
 import requests
-import stat
 import tempfile
 
 import docker
@@ -172,8 +171,6 @@ def main(syn, args):
             # Update permissions so that non-root container can write to it
             new_permissions = 0o777
             os.chmod(output_dir, new_permissions)
-            updated_permissions = stat.S_IMODE(os.stat(output_dir).st_mode)
-            print(f"New permissions verified (octal): {oct(updated_permissions)}")
 
             success, run_error = run_docker(syn, args, client, output_dir)
             if not success:

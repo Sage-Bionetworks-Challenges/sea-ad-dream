@@ -38,7 +38,7 @@ inputs:
 
 outputs:
 - id: predictions
-  type: File
+  type: File?
   outputBinding:
     glob: predictions.csv
 - id: results
