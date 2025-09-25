@@ -35,14 +35,14 @@ PREDICTION_COLS = {
     "predicted Braak": str,
     "predicted CERAD": str,
     "predicted Thal": str,
-    "predicted LATE": str,
-    "predicted Lewy": str,
     "predicted 6e10": float,
     "predicted AT8": float,
     "predicted GFAP": float,
     "predicted NeuN": float,
 }
 OPTIONAL_COLS = {
+    "predicted LATE": str,
+    "predicted Lewy": str,
     "predicted aSyn": float,
     "predicted pTDP43": float,
 }
