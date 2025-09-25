@@ -43,7 +43,7 @@ arguments:
 
 hints:
   DockerRequirement:
-    dockerPull: ghcr.io/sage-bionetworks-challenges/sea-ad-dream:v0.0.3
+    dockerPull: ghcr.io/sage-bionetworks-challenges/sea-ad-dream:latest
 
 s:author:
 - class: s:Person
