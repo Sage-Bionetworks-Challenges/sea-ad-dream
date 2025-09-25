@@ -119,7 +119,7 @@ def run_docker(syn, args, docker_client, output_dir_to_mount, timeout=10800):
             name=container_name,
             network_disabled=True,
             mem_limit="100g",
-            shm_size="2g",
+            shm_size="4g",
             stderr=True,
         )
 
@@ -194,6 +194,7 @@ def main(syn, args):
                 {
                     "submission_status": status,
                     "submission_errors": invalid_reasons,
+                    "admin_folder": args.parentid,
                 }
             )
         )
