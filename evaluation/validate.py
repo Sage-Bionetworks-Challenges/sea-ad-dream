@@ -50,7 +50,7 @@ OPTIONAL_COLS = {
 
 def check_acceptable_value(col: pd.Series, acceptable_values: set) -> str:
     """Check if all values in column are accepted values."""
-    invalid_values = set(col.dropna().unique()) - acceptable_values
+    invalid_values = set(col.unique()) - acceptable_values
     if invalid_values:
         return (
             f"Unacceptable values found in column '{col.name}': "
