@@ -184,6 +184,9 @@ def main(
         metric: ("Cannot be calculated" if pd.isnull(score) else score)
         for metric, score in scores.items()
     }
+    if all(score == "Cannot be calculated" for score in scores.values()):
+        status = "INVALID"
+        errors = "Error encountered during scoring; submission not evaluated."
 
     res = {
         "submission_status": status,
