@@ -55,10 +55,23 @@ def goal1_evaluation(df_adata, df):
         y_pred = merged_df["num_predicted " + i].to_numpy()
         y_pred = y_pred[~np.isnan(y_true)]
         y_true = y_true[~np.isnan(y_true)]
-        mae = mean_absolute_error(y_true, y_pred)
-        res = stats.spearmanr(y_true, y_pred)
-        r2 = res.statistic
-        qwk = cohen_kappa_score(y_true, y_pred, weights="quadratic")
+
+        try:
+            mae = mean_absolute_error(y_true, y_pred)
+        except ValueError:
+            mae = "Cannot be calculated"
+
+        try:
+            res = stats.spearmanr(y_true, y_pred)
+            r2 = res.statistic
+        except ValueError:
+            r2 = "Cannot be calculated"
+
+        try:
+            qwk = cohen_kappa_score(y_true, y_pred, weights="quadratic")
+        except ValueError:
+            qwk = "Cannot be calculated"
+
         dict_performance[i + "_MAE"] = mae
         dict_performance[i + "_R2"] = r2
         dict_performance[i + "_QWK"] = qwk
@@ -74,9 +87,22 @@ def goal2_evaluation(df_adata, df):
         y_pred = merged_df["predicted " + i].to_numpy()
         y_pred = y_pred[~np.isnan(y_true)]
         y_true = y_true[~np.isnan(y_true)]
-        mse = mean_squared_error(y_true, y_pred)
-        r2 = np.corrcoef(y_true, y_pred)[0, 1]
-        ccc = concordance_correlation_coefficient(y_true, y_pred)
+
+        try:
+            mse = mean_squared_error(y_true, y_pred)
+        except ValueError:
+            mse = "Cannot be calculated"
+
+        try:
+            r2 = np.corrcoef(y_true, y_pred)[0, 1]
+        except ValueError:
+            r2 = "Cannot be calculated"
+
+        try:
+            ccc = concordance_correlation_coefficient(y_true, y_pred)
+        except ValueError:
+            ccc = "Cannot be calculated"
+
         dict_performance[i + "_MSE"] = mse
         dict_performance[i + "_R2"] = r2
         dict_performance[i + "_CCC"] = ccc
