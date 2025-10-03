@@ -322,7 +322,7 @@ steps:
       - id: results
         source: "#10_score/results"
       - id: private_annotations
-        default: ["admin_folder", "submission_errors"]
+        default: ["submission_errors"]
     out: []
 
   11_add_score_annots:
