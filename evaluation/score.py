@@ -41,12 +41,15 @@ GROUNDTRUTH_COLS = {
 }
 
 # Expected columns and data types for predictions file.
-PREDICTION_COLS = {
+TASK1_PRED_COLS = {
     "Donor ID": str,
     "predicted ADNC": str,
     "predicted Braak": str,
     "predicted CERAD": str,
     "predicted Thal": str,
+}
+TASK2_PRED_COLS = {
+    "Donor ID": str,
     "predicted 6e10": float,
     "predicted AT8": float,
     "predicted GFAP": float,
@@ -59,6 +62,8 @@ OPTIONAL_COLS = {
     "predicted pTDP43": float,
 }
 
+ID_COL = "Donor ID"
+
 
 def score_task1(gt_file: str, pred_file: str) -> dict[str, int | float]:
     """Scoring function for Task 1.
@@ -68,17 +73,20 @@ def score_task1(gt_file: str, pred_file: str) -> dict[str, int | float]:
         - MAE (Mean Absolute Error)
         - Spearman rank correlation
     """
+    truth = (
+        pd.read_csv(
+            gt_file,
+            usecols=GROUNDTRUTH_COLS,
+            dtype=GROUNDTRUTH_COLS,
+        )
+        .set_index(ID_COL)
+    )
+    cols_to_use = [*TASK1_PRED_COLS] + [*OPTIONAL_COLS]
     pred = pd.read_csv(
         pred_file,
-        usecols=PREDICTION_COLS,
-        dtype=PREDICTION_COLS,
+        usecols=lambda colname: colname in cols_to_use,
         float_precision="round_trip",
-    )
-    truth = pd.read_csv(
-        gt_file,
-        usecols=GROUNDTRUTH_COLS,
-        dtype=GROUNDTRUTH_COLS,
-    )
+    ).set_index(ID_COL)
     return goal1_evaluation(
         df_adata=truth,
         df=pred,
@@ -93,17 +101,21 @@ def score_task2(gt_file: str, pred_file: str) -> dict[str, int | float]:
         - MSE (Mean Squared Error)
         - R2 (Coefficient of Determination)
     """
-    cols_to_use = [*PREDICTION_COLS] + [*OPTIONAL_COLS]
+    truth = (
+        pd.read_csv(
+            gt_file,
+            usecols=GROUNDTRUTH_COLS,
+            dtype=GROUNDTRUTH_COLS,
+        )
+        .set_index(ID_COL)
+        .fillna(0)  # TODO: check with Allen folks about NeuN gt
+    )
+    cols_to_use = [*TASK2_PRED_COLS] + [*OPTIONAL_COLS]
     pred = pd.read_csv(
         pred_file,
         usecols=lambda colname: colname in cols_to_use,
         float_precision="round_trip",
-    )
-    truth = pd.read_csv(
-        gt_file,
-        usecols=GROUNDTRUTH_COLS,
-        dtype=GROUNDTRUTH_COLS,
-    ).fillna(0)  # TODO: check with Allen folks about NeuN gt
+    ).set_index(ID_COL)
     return goal2_evaluation(
         df_adata=truth,
         df=pred,
