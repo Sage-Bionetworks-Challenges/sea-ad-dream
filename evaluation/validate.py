@@ -29,12 +29,15 @@ GROUNDTRUTH_COLS = {
 }
 
 # Expected columns and data types for predictions file.
-PREDICTION_COLS = {
+TASK1_PRED_COLS = {
     "Donor ID": str,
     "predicted ADNC": str,
     "predicted Braak": str,
     "predicted CERAD": str,
     "predicted Thal": str,
+}
+TASK2_PRED_COLS = {
+    "Donor ID": str,
     "predicted 6e10": float,
     "predicted AT8": float,
     "predicted GFAP": float,
@@ -46,6 +49,8 @@ OPTIONAL_COLS = {
     "predicted aSyn": float,
     "predicted pTDP43": float,
 }
+
+ID_COL = "Donor ID"
 
 
 def check_acceptable_value(col: pd.Series, acceptable_values: set) -> str:
@@ -60,20 +65,8 @@ def check_acceptable_value(col: pd.Series, acceptable_values: set) -> str:
     return ""
 
 
-def validate(gt_file: str, pred_file: str) -> list[str] | filter:
-    """Validation function.
-
-    Checks include:
-        - Prediction file has the expected columns
-        - There is exactly one prediction for each ID
-        - Every ID has a prediction
-        - There are no predictions for IDs not present in the groundtruth
-        - String values are from accepted set of values
-        - Float values are between 0 and 100, inclusive
-
-    Returns a list of error messages. An empty list signifies successful
-    validation.
-    """
+def validate_task1(gt_file: str, pred_file: str) -> list[str] | filter:
+    """Validate task 1."""
     errors = []
     truth = pd.read_csv(
         gt_file,
@@ -81,23 +74,22 @@ def validate(gt_file: str, pred_file: str) -> list[str] | filter:
         dtype=GROUNDTRUTH_COLS,
     )
     try:
-        cols_to_use = [*PREDICTION_COLS] + [*OPTIONAL_COLS]
+        cols_to_use = [*TASK1_PRED_COLS] + [*OPTIONAL_COLS]
         pred = pd.read_csv(
             pred_file,
             usecols=lambda colname: colname in cols_to_use,
             float_precision="round_trip",
         )
-        assert np.isin([*PREDICTION_COLS], pred.columns).all()
-    except AssertionError as err:
+        assert np.isin([*TASK1_PRED_COLS], pred.columns).all()
+    except AssertionError:
         errors.append(
             f"Prediction file is missing one or more required columns. "
-            f"Expecting: {str(PREDICTION_COLS)}."
+            f"Expecting: {str(TASK1_PRED_COLS)}."
         )
     else:
-        id_col = "Donor ID"
-        errors.append(vtk.check_duplicate_keys(pred[id_col]))
-        errors.append(vtk.check_missing_keys(truth[id_col], pred[id_col]))
-        errors.append(vtk.check_unknown_keys(truth[id_col], pred[id_col]))
+        errors.append(vtk.check_duplicate_keys(pred[ID_COL]))
+        errors.append(vtk.check_missing_keys(truth[ID_COL], pred[ID_COL]))
+        errors.append(vtk.check_unknown_keys(truth[ID_COL], pred[ID_COL]))
         errors.append(
             check_acceptable_value(
                 pred["predicted ADNC"],
@@ -158,68 +150,62 @@ def validate(gt_file: str, pred_file: str) -> list[str] | filter:
                     },
                 )
             )
-        errors.append(
-            vtk.check_values_range(
-                pred["predicted 6e10"],
-                min_val=0,
-                max_val=100,
-            )
-        )
-        errors.append(
-            vtk.check_values_range(
-                pred["predicted AT8"],
-                min_val=0,
-                max_val=100,
-            )
-        )
-        errors.append(
-            vtk.check_values_range(
-                pred["predicted GFAP"],
-                min_val=0,
-                max_val=100,
-            )
-        )
-        errors.append(
-            vtk.check_values_range(
-                pred["predicted NeuN"],
-                min_val=0,
-                max_val=100,
-            )
-        )
-        if "predicted aSyn" in pred.columns:
-            errors.append(
-                vtk.check_values_range(
-                    pred["predicted aSyn"],
-                    min_val=0,
-                    max_val=100,
-                )
-            )
-        if "predicted pTDP43" in pred.columns:
-            errors.append(
-                vtk.check_values_range(
-                    pred["predicted pTDP43"],
-                    min_val=0,
-                    max_val=100,
-                )
-            )
-
     # Remove any empty strings from the list before return.
     return filter(None, errors)
 
 
-# def validate(task_number: int, gt_file: str, pred_file: str) -> list[str] | filter:
-#     """
-#     Routes validation to the appropriate task-specific function.
-#     """
-#     validation_func = {
-#         1: validate_task1,
-#         # --- Add more tasks and their validation functions here ---
-#         # 2: validate_task2,
-#     }.get(task_number)
+def validate_task2(gt_file: str, pred_file: str) -> list[str] | filter:
+    """Validate task 2."""
+    errors = []
+    truth = pd.read_csv(
+        gt_file,
+        usecols=GROUNDTRUTH_COLS,
+        dtype=GROUNDTRUTH_COLS,
+    )
+    try:
+        cols_to_use = [*TASK2_PRED_COLS] + [*OPTIONAL_COLS]
+        pred = pd.read_csv(
+            pred_file,
+            usecols=lambda colname: colname in cols_to_use,
+            float_precision="round_trip",
+        )
+        assert np.isin([*TASK2_PRED_COLS], pred.columns).all()
+    except AssertionError:
+        errors.append(
+            f"Prediction file is missing one or more required columns. "
+            f"Expecting: {str(TASK2_PRED_COLS)}."
+        )
+    else:
+        errors.append(vtk.check_duplicate_keys(pred[ID_COL]))
+        errors.append(vtk.check_missing_keys(truth[ID_COL], pred[ID_COL]))
+        errors.append(vtk.check_unknown_keys(truth[ID_COL], pred[ID_COL]))
+        for colname in pred.columns:
+            if colname.startswith("predicted"):
+                errors.append(
+                    vtk.check_values_range(
+                        pred[colname],
+                        min_val=0,
+                        max_val=100,
+                    )
+                )
+    # Remove any empty strings from the list before return.
+    return filter(None, errors)
 
-#     if validation_func:
-#         return validation_func(gt_file=gt_file, pred_file=pred_file)
-#     return [f"Invalid challenge task number specified: `{task_number}`"]
+
+def validate(task_number: int, gt_file: str, pred_file: str) -> list[str] | filter:
+    """
+    Routes validation to the appropriate task-specific function.
+    """
+    validation_func = {
+        9616048: validate_task1,
+        9616135: validate_task1,
+        9616049: validate_task2,
+        9616136: validate_task2,
+    }.get(task_number)
+
+    if validation_func:
+        return validation_func(gt_file=gt_file, pred_file=pred_file)
+    return [f"Invalid challenge task number specified: `{task_number}`"]
 
 
 def main(
@@ -246,7 +232,7 @@ def main(
             "--task_number",
             help="Challenge task number for which to validate the predictions file.",
         ),
-    ] = 1,
+    ] = 9616048,
     output_file: Annotated[
         str,
         typer.Option(
@@ -258,6 +244,7 @@ def main(
 ):
     """Validates the predictions file in preparation for evaluation."""
     errors = validate(
+        task_number=task_number,
         gt_file=groundtruth_file,
         pred_file=predictions_file,
     )
