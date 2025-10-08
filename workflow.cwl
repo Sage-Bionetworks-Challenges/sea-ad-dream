@@ -234,6 +234,8 @@ steps:
         source: "#02_run_docker/predictions"
       - id: groundtruth
         source: "#01_download_groundtruth/filepath"
+      - id: task_number
+        source: "#01_download_submission/evaluation_id"
       - id: previous_annotation_finished
         source: "#06_annotate_docker_upload_results/finished"
     out:

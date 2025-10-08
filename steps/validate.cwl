@@ -11,6 +11,8 @@ inputs:
   type: File
 - id: groundtruth
   type: File
+- id: task_number
+  type: string
 - id: previous_annotation_finished
   type: boolean?
 
@@ -38,6 +40,8 @@ arguments:
   valueFrom: $(inputs.input_file)
 - prefix: -g
   valueFrom: $(inputs.groundtruth.path)
+- prefix: -t
+  valueFrom: $(inputs.task_number)
 - prefix: -o
   valueFrom: results.json
 
