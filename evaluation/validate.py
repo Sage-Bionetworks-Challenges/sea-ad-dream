@@ -179,7 +179,7 @@ def validate_task2(gt_file: str, pred_file: str) -> list[str] | filter:
         errors.append(vtk.check_duplicate_keys(pred[ID_COL]))
         errors.append(vtk.check_missing_keys(truth[ID_COL], pred[ID_COL]))
         errors.append(vtk.check_unknown_keys(truth[ID_COL], pred[ID_COL]))
-        for colname in pred.columns:
+        for colname in TASK2_PRED_COLS:
             if colname.startswith("predicted"):
                 errors.append(
                     vtk.check_values_range(
@@ -188,6 +188,22 @@ def validate_task2(gt_file: str, pred_file: str) -> list[str] | filter:
                         max_val=100,
                     )
                 )
+        if "predicted aSyn" in pred.columns:
+            errors.append(
+                vtk.check_values_range(
+                    pred["predicted aSyn"],
+                    min_val=0,
+                    max_val=100,
+                )
+            )
+        if "predicted pTDP43" in pred.columns:
+            errors.append(
+                vtk.check_values_range(
+                    pred["predicted pTDP43"],
+                    min_val=0,
+                    max_val=100,
+                )
+            )
     # Remove any empty strings from the list before return.
     return filter(None, errors)
 
