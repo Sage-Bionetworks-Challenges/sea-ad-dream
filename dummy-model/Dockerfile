@@ -1,7 +1,7 @@
 # Define the base of your image.
 # We recommend to always specify a tag. `latest` may not 
 # always ensure reproducibility.
-FROM --platform=linux/amd64 python:3.12-slim
+FROM python:3.12-slim
 
 # Set the working directory for the COPY, RUN, and ENTRYPOINT
 # commands of the Dockerfile.
