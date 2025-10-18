@@ -131,6 +131,10 @@ def score(task_number: int, gt_file: str, pred_file: str) -> dict[str, int | flo
         9616135: score_task1,
         9616049: score_task2,
         9616136: score_task2,
+        9617459: score_task1,
+        9617461: score_task1,
+        9617460: score_task2,
+        9617463: score_task2,
     }.get(task_number)
 
     if scoring_func:

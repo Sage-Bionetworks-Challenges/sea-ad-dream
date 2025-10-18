@@ -217,6 +217,10 @@ def validate(task_number: int, gt_file: str, pred_file: str) -> list[str] | filt
         9616135: validate_task1,
         9616049: validate_task2,
         9616136: validate_task2,
+        9617459: validate_task1,
+        9617461: validate_task1,
+        9617460: validate_task2,
+        9617463: validate_task2,
     }.get(task_number)
 
     if validation_func:
