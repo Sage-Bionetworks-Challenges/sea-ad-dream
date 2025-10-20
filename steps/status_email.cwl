@@ -46,9 +46,9 @@ requirements:
         subject = f"Submission to '{evaluation.name}' - Evaluation Status"
         message = f"Hello {name}, \n\n"
         if status == "SCORED":
-            message = f"Your submission (id: {sub.id}) has been scored! Results will be announced at a later time."
+            message += f"Your submission (id: {sub.id}) has been scored! Results will be announced at a later time."
         else:
-            message = f"Error encountered during scoring; your submission (id: {sub.id}) was not evaluated."
+            message += f"Error encountered during scoring; your submission (id: {sub.id}) was not evaluated."
         message += "\n\nSincerely,\nChallenge Administrator"
         syn.sendMessage(
             userIds=[participantid], messageSubject=subject, messageBody="".join(message)
