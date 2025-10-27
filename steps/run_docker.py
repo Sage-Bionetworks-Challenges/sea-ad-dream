@@ -119,7 +119,8 @@ def run_docker(syn, args, docker_client, output_dir_to_mount, timeout=10800):
             name=container_name,
             network_disabled=True,
             mem_limit="110g",
-            shm_size="112g",
+            memswap_limit="112g",
+            shm_size="2g",
             stderr=True,
         )
 
