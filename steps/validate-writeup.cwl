@@ -46,7 +46,8 @@ arguments:
   valueFrom: $(inputs.synapse_config.path)
 - valueFrom: validate-project
 - valueFrom: $(inputs.submissionid)
-- prefix: -o
+- valueFrom: $(inputs.challengewiki)
+- prefix: --output
   valueFrom: results.json
 
 hints:
