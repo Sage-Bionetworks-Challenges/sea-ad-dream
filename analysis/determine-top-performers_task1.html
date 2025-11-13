@@ -361,19 +361,27 @@ Performers - Task1</h1>
 <div id="introduction-goal" class="section level2">
 <h2>Introduction &amp; Goal 🎯</h2>
 <p>This notebook outlines the methodology for declaring top-performing
-methods in the SEA-AD DREAM Challenge, specifically by assessing for
-“tied” performance between submissions.</p>
+methods in the <a href="https://www.synapse.org/sea_ad_dream">SEA-AD
+DREAM Challenge</a>, specifically by assessing for “tied” performance
+between submissions.</p>
+<div id="task-1-evaluation-overview" class="section level3">
+<h3>Task 1 Evaluation Overview</h3>
+<p>The primary metric used to evaluate submissions for Task 1 is the
+Quadratic Weighted Kappa (<code>ADNC_QWK</code>), computed on the
+predicted Alzheimer’s Disease Neuropathology Consensus (ADNC)
+scores.</p>
+</div>
 <div id="methodology" class="section level3">
 <h3>Methodology</h3>
 <p>To determine if methods are substantially different in performance,
-we employ a bootstrapping approach combined with a Bayes Factor
-calculation.</p>
+we employ a bootstrapping approach combined with a Bayes Factor (<span class="math inline">\(\text{BF}\)</span>) calculation. This statistical
+framework allows us to assess the statistical equivalence of models
+across many resampled datasets.</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Bootstrapping:</strong> We repeatedly sample with
 replacement (e.g. 1000-10000 times) the submitted predictions and the
-groundtruth/goldstandard values. This generates a distribution of
-performance scores for each participant under various data
-scenarios.</p></li>
+gold standard values. This generates a distribution of performance
+scores for each participant under various data scenarios.</p></li>
 <li><p><strong>Bayes Factor (BF):</strong> We calculate the BF for each
 method relative to the top-performing reference method. The BF
 quantifies the evidence of one model being better than another.</p></li>
@@ -891,7 +899,7 @@ overall top performer, using a threshold of <span class="math inline">\(\text{BF
 (<span class="math inline">\(\text{BF}=0\)</span>), is the only team
 whose performance is not substantially different from itself. Since no
 other submissions yielded a Bayes factor <span class="math inline">\(\le
-3\)</span>, <strong>Team gisl7 is declared the sole Top Performer for
+3\)</span>, <strong>team gisl7 is declared the sole “Top Performer” for
 Task 1 of the SEA-AD DREAM Challenge</strong>.</p>
 </div>
 

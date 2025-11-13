@@ -11,18 +11,25 @@ output:
 ## Introduction & Goal 🎯
   
 This notebook outlines the methodology for declaring top-performing methods in
-the SEA-AD DREAM Challenge, specifically by assessing for "tied" performance
-between submissions.
+the [SEA-AD DREAM Challenge](https://www.synapse.org/sea_ad_dream), specifically
+by assessing for "tied" performance between submissions.
+
+### Task 1 Evaluation Overview
+
+The primary metric used to evaluate submissions for Task 1 is the Quadratic
+Weighted Kappa (`ADNC_QWK`), computed on the predicted Alzheimer's
+Disease Neuropathology Consensus (ADNC) scores.
 
 ### Methodology
 
 To determine if methods are substantially different in performance, we employ a
-bootstrapping approach combined with a Bayes Factor calculation.
+bootstrapping approach combined with a Bayes Factor ($\text{BF}$) calculation.
+This statistical framework allows us to assess the statistical equivalence of
+models across many resampled datasets.
 
 1. **Bootstrapping:** We repeatedly sample with replacement (e.g. 1000-10000
-times) the submitted predictions and the groundtruth/goldstandard values. This
-generates a distribution of performance scores for each participant under various
-data scenarios.
+times) the submitted predictions and the gold standard values. This generates a
+distribution of performance scores for each participant under various data scenarios.
 
 2. **Bayes Factor (BF):** We calculate the BF for each method relative to the
 top-performing reference method. The BF quantifies the evidence of one model
@@ -30,9 +37,9 @@ being better than another.
 
 ### Determining the Top-Performer(s)
 
-A smaller BF indicates more similar performance. We use a BF cut-off of 3 to define
-a tie. Any method with a $\text{BF} \le 3$ (relative to the best method) is
-considered not substantially different and is therefore declared a top-performer
+A smaller BF indicates more similar performance. We use a BF cut-off of 3 to
+define a tie. Any method with a $\text{BF} \le 3$ (relative to the best method)
+is considered not substantially different and is therefore declared a top-performer
 alongside the reference method.
 
 
@@ -371,4 +378,5 @@ performer, using a threshold of $\text{BF} \le 3$ to define a tie.
 The analysis confirms that the reference submission, Team gisl7 ($\text{BF}=0$),
 is the only team whose performance is not substantially different from itself.
 Since no other submissions yielded a Bayes factor $\le 3$,
-**Team gisl7 is declared the sole Top Performer for Task 1 of the SEA-AD DREAM Challenge**.
+**team gisl7 is declared the sole "Top Performer" for Task 1 of the SEA-AD DREAM Challenge**.
+
