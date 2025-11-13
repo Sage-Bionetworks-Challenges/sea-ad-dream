@@ -4,7 +4,6 @@ author: "Sage CNB Team"
 date: "2025-11-11"
 output:
   html_document: default
-  pdf_document: default
 ---
 
 ## Introduction & Goal 🎯
@@ -310,7 +309,7 @@ plot <- bs %>%
     y = bs_score,
     color = bayes_category
   )) +
-  geom_boxplot(lwd = 1.2, fatten = 1) +
+  geom_boxplot(lwd = 1.2, median.linewidth = 1) +
   theme_bw() +
   scale_color_manual(values = c(
     "Top Performers" = "#FFBF00", 
@@ -333,7 +332,6 @@ plot.bf.top <- bf %>%
     bayes == 0 ~ "Top Performer",
     bayes <= 3 ~ "Bayes Factor ≤3",
     bayes > 3 ~ "Bayes Factor >3")) %>% 
-  filter(bayes <= 25) %>%
   ggplot(aes(submission, bayes, fill=bayes_category)) + 
   geom_bar(stat='identity') + 
   coord_flip(ylim = c(0, 20)) +
