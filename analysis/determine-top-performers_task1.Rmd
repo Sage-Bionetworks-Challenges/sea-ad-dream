@@ -1,0 +1,363 @@
+---
+title: 'Bootstrap analysis: Determine Top Performers - Task1'
+author: "Sage CNB Team"
+date: "2025-11-11"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Introduction & Goal 🎯
+  
+This notebook outlines the methodology for declaring top-performing methods in
+the SEA-AD DREAM Challenge, specifically by assessing for "tied" performance
+between submissions.
+
+### Methodology
+
+To determine if methods are substantially different in performance, we employ a
+bootstrapping approach combined with a Bayes Factor calculation.
+
+1. **Bootstrapping:** We repeatedly sample with replacement (e.g. 1000-10000
+times) the submitted predictions and the groundtruth/goldstandard values. This
+generates a distribution of performance scores for each participant under various
+data scenarios.
+
+2. **Bayes Factor (BF):** We calculate the Bayes Factor for each method relative
+to the top-performing reference method. The Bayes factor quantifies the evidence
+of one model being better than another.
+
+### Determining the Top-Performer(s)
+
+A smaller Bayes Factor indicates more similar performance. We use a Bayes Factor
+cutoff of 3 to define a tie. Any method with a Bayes Factor $\le 3$ (relative to
+the best method) is considered not substantially different and is therefore
+declared a top-performer alongside the reference method.
+
+
+## Setup and Data Loading 🛠
+
+### Packages
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(synapser))
+
+# Login to Synapse.
+syn$login(silent=TRUE)
+```
+
+### Helper Functions
+
+In addition to importing the scoring functions provided by the challenge organizers,
+we also define two functions for data processing and analysis:
+
+1. `get_name()`: this function resolves a Synapse `submitterid` (which can be a
+userID or teamID) into a human-readable username or team name. This will later
+help with plotting.
+
+2. `computeBayesFactor()`: this function is an updated implementation of the 
+Bayes factor calculation, superseding the outdated version in the `challengescoring`
+package. It calculates the Bayes factor for all submissions relative to a 
+specified reference prediction index (`refPredIndex`).
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+reticulate::source_python("../evaluation/dream_evaluation.py")
+
+get_name <- function(id) {
+  name <- tryCatch({
+    syn$getUserProfile(id)$userName
+  }, error = function(err) {
+    syn$getTeam(id)$name
+  })
+  name
+}
+
+computeBayesFactor <- function(bootstrapMetricMatrix,
+                               refPredIndex,
+                               invertBayes) {
+  M <- as.data.frame(bootstrapMetricMatrix - bootstrapMetricMatrix[,refPredIndex])
+  K <- apply(M ,2, function(x) {
+    k <- sum(x >= 0)/sum(x < 0)
+    
+    # Logic handles whether reference column is the best set of predictions.
+    if(sum(x >= 0) > sum(x < 0)){
+      return(k)
+    }else{
+      return(1/k)
+    }
+  })
+  K[refPredIndex] <- 0
+  if(invertBayes == T){K <- 1/K}
+  return(K)
+}
+```
+
+### Data Acquisition
+
+The Final Round prediction files and the corresponding groundtruth file will be
+retrieved from Synapse, where they are currently stored.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+## Groundtruth file
+truth <- readr::read_csv(syn$get("syn70199164")$path) %>%
+  janitor::clean_names() %>%  # Clean up colnames
+  select(-x1)  # Remove `x1` column from df
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+## Prediction files
+task1 <- syn$tableQuery(
+  "SELECT
+    id,
+    submitterid,
+    ADNC_QWK,
+    prediction_fileid
+  FROM
+    syn68896134 
+  WHERE
+    evaluationid = 9617459
+    AND status = 'ACCEPTED'
+    AND submission_status = 'SCORED'
+    AND submitterid <> 3393723
+  ORDER BY
+    ADNC_QWK DESC"
+)$asDataFrame()
+
+# Replace IDs with usernames/team names.
+task1$submitterid <- as.character(task1$submitterid)
+team_names <- sapply(task1$submitterid, function(sub) {
+  get_name(sub)
+})
+task1$submitterid <- team_names
+
+# Drop row.names for easier table reading.
+row.names(task1) <- NULL
+kable(
+  task1 %>% select(-prediction_fileid),
+  caption="Task 1 Final Round Leaderboard (as seen on Synapse)"
+)
+```
+
+
+## Bootstrapping Procedure 📊
+
+First, we combine all individual submission predictions and the groundtruth
+values into a single data frame. This single source will help create a more
+efficient resampling process for the bootstrapping analysis.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+pred_filenames <- lapply(task1$prediction_fileid, function(id) {
+  syn$get(id)$path
+})
+names(pred_filenames) <- team_names
+
+submissions <- lapply(names(pred_filenames), function(team) {
+  
+  # Read in prediction files
+  readr::read_csv(pred_filenames[[team]], show_col_types = FALSE) %>%
+  
+  # Clean up column names (removes spaces, special chars)
+  janitor::clean_names() %>% 
+    
+  # Only consider the Donor ID and primary metric from the prediction file
+  select("donor_id", "predicted_adnc") %>%
+    
+  # Replace "predicted_ADNC" with the team name for easier identification after
+  # merging with the groundtruth
+  rename(!!team := predicted_adnc) 
+}) %>% 
+  
+  # Merge the prediction columns together
+  purrr::reduce(left_join, by="donor_id") %>%
+  
+  # Merge in the groundtruth target values
+  left_join(truth %>% select("donor_id", "adnc"), by="donor_id") %>%
+  
+  # Rename "ADNC" column to "truth"
+  rename(truth = adnc)
+
+kable(
+  head(submissions),
+  caption="Preview of Model Predictions and Corresponding Groundtruth Values"
+)
+```
+
+Next, we perform a pre-bootstrapping verification to ensure the scoring logic
+correctly reproduces the published leaderboard scores _prior_ to any resampling.
+This serves as a critical check on the scoring function.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+bs.check <- sapply(names(pred_filenames), function(team) {
+  apply(matrix(1:nrow(truth), nrow(truth), 1), 2, function(ind) {
+    cohen_kappa_score(
+      submissions$truth[ind],
+      submissions[[team]][ind],
+      weights="quadratic"
+    )
+  })
+})
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(
+  bs.check %>%
+    as_tibble(rownames = "submitterid") %>%
+    left_join(task1, by = "submitterid") %>%
+    mutate(
+      scores_match = dplyr::near(value, ADNC_QWK)
+    ) %>%
+    select(
+      submitterid,
+      bf_calculated_score = value,
+      original_score = ADNC_QWK,
+      scores_match
+    ),
+  caption='Comparison of "BF-calculated" Scores and Original Scores'
+)
+```
+
+The core bootstrapping process is then executed:
+
+* Resample the rows (data points) of the combined data frame 10,000 times 
+($N=10,000$) with replacement
+
+* For each of the $N$ bootstrap samples, we re-score every submission using the
+primary challenge metric (Quadratic Weighted Kappa, `QWK`)
+
+This will produce a matrix of 10,000 bootstrapped scores per submission.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Set seed for reproducible results (since we're doing a random sample)
+set.seed(202511)
+
+# Run bootstrapping.
+N <- 10000
+bs_indices <- matrix(1:nrow(truth), nrow(truth), N) %>%
+  apply(2, sample, replace = TRUE)
+
+bs <- sapply(names(pred_filenames), function(team) {
+  apply(bs_indices, 2, function(ind) {
+    cohen_kappa_score(
+      submissions$truth[ind],
+      submissions[[team]][ind],
+      weights="quadratic"
+    )
+  })
+})
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+##
+## Analysis for running on a subset of the data.
+## Saving here in case we need it.
+##
+# sample_percentage <- 0.1
+# number_of_samples <- round(nrow(truth) * sample_percentage)
+# bs <- sapply(names(pred_filenames), function(team) {
+#   apply(bs_indices[1:number_of_samples,], 2, function(ind) {
+#     cohen_kappa_score(submissions$truth[ind], submissions[[team]][ind], weights="quadratic")
+#   })
+# })
+```
+
+## Bayes Factor Calculation 📈
+
+The resulting $10,000 \times \text{number of submissions}$ matrix of bootstrapped
+scores is used to calculate the Bayes Factor (BF) for each submission.
+
+The top-performing model (highest ADNC_QWK score) is automatically set as the
+reference prediction ($BF=0$) against which all other methods are compared.
+
+As established earlier, a Bayes factor $\le 3$ indicates that a method's
+performance is not substantially different from the top performer.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+bf <- computeBayesFactor(bs, refPredIndex = 1, invertBayes = FALSE) %>%
+  as_tibble(rownames = "submission") %>%
+  rename(bayes = value)
+kable(bf)
+```
+
+## Results & Top Performer Determination 🏆
+
+The results are visualized using a combined plot showing two views:
+
+1. **Bootstrapped Score Distribution (left):** boxplot showing the distribution
+of the 10,000 bootstrapped `ADNC_QWK` scores for each team. The color indicates
+the BF category.
+
+2. **Bayes Factor Visualization (right):** bar plot showing the calculated BF
+relative to the top-performer. The horizontal dashed line indicates the BF $\le 3$
+cutoff used to determine a tie.
+
+Methods falling into the "BF $\le 3$" category, including the top performer ($BF=0$),
+will be declared "Top Performers" for this challenge task.
+
+```{r echo=FALSE, message=FALSE, warnings=FALSE}
+
+# --- PLOT 1: Bootstrapped score distribution (boxplot) ---
+plot <- bs %>%
+  as_tibble() %>%
+  tidyr::gather(submission, bs_score) %>%
+  left_join(bf) %>%
+  mutate(bayes_category=case_when(
+    bayes == 0 ~ "Top Performer(s)",
+    bayes <= 3 ~ "Bayes Factor ≤3",
+    bayes > 3 ~ "Bayes Factor >3")) %>%
+  ggplot(aes(
+    x = forcats::fct_reorder(submission, bs_score, .fun = mean),
+    y = bs_score,
+    color = bayes_category
+  )) +
+  geom_boxplot(lwd = 1.2, fatten = 1) +
+  theme_bw() +
+  scale_color_manual(values = c(
+    "Top Performers" = "#FFBF00", 
+    'Bayes Factor ≤3' = '#219EE6', 
+    "Bayes Factor >3" = "#B6B5B3"),
+    name = NULL) +
+  coord_flip() +
+  labs(x="Team", y="Bootstrapped ADNC_QWK\n(num_iterations=10,000)") +
+  theme(
+    axis.text.y.left = element_text(size = 12),
+    axis.text.x.bottom = element_text(size = 12),
+    text = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    legend.position = c(0.3, 0.9),
+    legend.background = element_rect(linetype = "solid", color = "black"))
+
+# --- PLOT 2: BF comparison (bar plot) ---
+plot.bf.top <- bf %>% 
+  mutate(bayes_category=case_when(
+    bayes == 0 ~ "Top Performer",
+    bayes <= 3 ~ "Bayes Factor ≤3",
+    bayes > 3 ~ "Bayes Factor >3")) %>% 
+  filter(bayes <= 25) %>%
+  ggplot(aes(submission, bayes, fill=bayes_category)) + 
+  geom_bar(stat='identity') + 
+  coord_flip(ylim = c(0, 20)) +
+  geom_hline(yintercept = 3, linetype = 2, lwd = 1.2, color="#7d2929") +
+  theme_classic() + 
+  scale_x_discrete(limits=names(sort(colMeans(bs)))) + 
+  scale_fill_manual(values = c(
+    "Top Performer" = "#FFBF00", 
+    'Bayes Factor ≤3' = '#219EE6', 
+    "Bayes Factor >3" = "#B6B5B3")) +
+  theme(legend.position = "none") +
+  theme(
+    text = element_text(size = 10),
+    axis.text.x.bottom = element_text(size = 12),
+    axis.title.y=element_blank(), 
+    axis.text.y=element_blank()) + 
+  labs(y="Bayes Factor\n(top_performer=gisl7)")
+
+
+ggsave(
+  file="sea-ad-dream_task1_BF.svg",
+  plot=gridExtra::grid.arrange(plot, plot.bf.top, ncol = 2, widths = c(3, 1)),
+  width = 24,
+  height = 18.6
+)
+```
+
