@@ -45,7 +45,7 @@ Other metrics returned (but _not_ used for ranking) include:
 ### Validate
 
 ```text
-python validate.py \
+python evaluation/validate.py \
   -p PATH/TO/PREDICTIONS_FILE.CSV \
   -g PATH/TO/GROUNDTRUTH.CSV [-o RESULTS_FILE]
 ```
@@ -58,7 +58,7 @@ to STDOUT, e.g.
 
 What it will check for:
 
-- 9 expected columns (with up to 4 optional columns), where:
+- 5 expected columns for Task 1 and Task 2 (with up to 2 optional columns each), where:
   - String values are from accepted sets of values
   - Float values are between 0 and 100, inclusive
 - There is exactly one prediction per ID (so: no missing
@@ -68,7 +68,7 @@ What it will check for:
 ### Score
 
 ```text
-python score.py \
+python evaluation/score.py \
   -p PATH/TO/PREDICTIONS_FILE.CSV \
   -g PATH/TO/GROUNDTRUTH_FILE.CSV [-t TASK_NUMBER] [-o RESULTS_FILE]
 ```
