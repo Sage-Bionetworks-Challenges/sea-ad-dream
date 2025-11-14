@@ -333,7 +333,7 @@ plot <- bs %>%
     axis.text.x.bottom = element_text(size = 12),
     text = element_text(size = 10),
     legend.text = element_text(size = 10),
-    legend.position = c(0.3, 0.9),
+    legend.position = c(0.2, 0.9),
     legend.background = element_rect(linetype = "solid", color = "black"))
 
 # --- PLOT 2: BF comparison (bar plot) ---
@@ -358,14 +358,15 @@ plot.bf.top <- bf %>%
     axis.text.x.bottom = element_text(size = 12),
     axis.title.y=element_blank(), 
     axis.text.y=element_blank()) + 
-  labs(y="Bayes Factor\n(top_performer=gisl7)")
+  labs(y="Bayes Factor\n(tie cut-off=3)")
 
 
 ggsave(
   file="sea-ad-dream_task1_BF.svg",
   plot=gridExtra::grid.arrange(plot, plot.bf.top, ncol = 2, widths = c(3, 1)),
-  width = 24,
-  height = 18.6
+  width = 10,
+  height = 8,
+  units = "in"
 )
 ```
 

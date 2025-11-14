@@ -1,37 +1,47 @@
 ---
 title: 'Bootstrap analysis: Determine Top Performers - Task2'
 author: "Sage CNB Team"
-date: "2025-11-11"
+date: "2025-11-13"
 output:
   html_document: default
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 ## Introduction & Goal 🎯
   
 This notebook outlines the methodology for declaring top-performing methods in
-the SEA-AD DREAM Challenge, specifically by assessing for "tied" performance
-between submissions.
+the [SEA-AD DREAM Challenge](https://www.synapse.org/sea_ad_dream), specifically
+by assessing for "tied" performance between submissions.
+
+### Task 2 Evaluation Overview
+
+The primary metric used to evaluate submissions for Task 2 is the Concordance
+Correlation Coefficient (`CCC`), computed on the predicted percentages of
+6e10 and AT8 positive areas. For final ranking, we will take the average CCC 
+across both areas.
 
 ### Methodology
 
 To determine if methods are substantially different in performance, we employ a
-bootstrapping approach combined with a Bayes Factor calculation.
+bootstrapping approach combined with a Bayes Factor ($\text{BF}$) calculation.
+This statistical framework allows us to assess the statistical equivalence of
+models across many resampled datasets.
 
-1. **Bootstrapping:** We repeatedly sample with replacement (e.g. 1000-10000
-times) the submitted predictions and the groundtruth/goldstandard values. This
-generates a distribution of performance scores for each participant under various
-data scenarios.
+1. **Bootstrapping:** repeatedly sample with replacement (e.g. 1,000 - 10,000 
+times) the submitted predictions and the groundtruth values. This generates a
+distribution of performance scores for each participant under various data scenarios.
 
-2. **Bayes Factor (BF):** We calculate the Bayes Factor for each method relative
-to the top-performing reference method. The Bayes factor quantifies the evidence
-of one model being better than another.
+2. **Bayes Factor (BF):** calculate the BF for each method relative to the top-
+performing reference method. The BF quantifies the evidence of one model
+being better than another.
 
 ### Determining the Top-Performer(s)
 
-A smaller Bayes Factor indicates more similar performance. We use a Bayes Factor
-cutoff of 3 to define a tie. Any method with a Bayes Factor $\le 3$ (relative to
-the best method) is considered not substantially different and is therefore
-declared a top-performer alongside the reference method.
+A smaller BF indicates more similar performance. We use a BF cut-off of 3 to
+define a tie. Any method with a $\text{BF} \le 3$ (relative to the best method)
+is considered not substantially different and is therefore declared a top-performer
+alongside the reference method.
 
 
 ## Setup and Data Loading 🛠
@@ -58,9 +68,9 @@ userID or teamID) into a human-readable username or team name. This will later
 help with plotting.
 
 2. `computeBayesFactor()`: this function is an updated implementation of the 
-Bayes factor calculation, superseding the outdated version in the `challengescoring`
-package. It calculates the Bayes factor for all submissions relative to a 
-specified reference prediction index (`refPredIndex`).
+BF calculation, superseding the outdated version in the `challengescoring`
+package. It calculates the BF for all submissions relative to a specified
+reference prediction index (`refPredIndex`).
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 reticulate::source_python("../evaluation/dream_evaluation.py")
@@ -96,7 +106,7 @@ computeBayesFactor <- function(bootstrapMetricMatrix,
 
 ### Data Acquisition
 
-The Final Round prediction files and the corresponding groundtruth file will be
+The Final Round prediction files and the corresponding groundtruth file are
 retrieved from Synapse, where they are currently stored.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -112,7 +122,7 @@ task2 <- syn$tableQuery(
   "SELECT
     id,
     submitterid,
-    `6e10_CCC`,
+    `6e10_AT8_Average_CCC`,
     prediction_fileid
   FROM
     syn68896134 
@@ -122,7 +132,7 @@ task2 <- syn$tableQuery(
     AND submission_status = 'SCORED'
     AND submitterid <> 3393723
   ORDER BY
-    `6e10_CCC` DESC"
+    `6e10_AT8_Average_CCC` DESC"
 )$asDataFrame()
 
 # Replace IDs with usernames/team names.
@@ -153,7 +163,11 @@ pred_filenames <- lapply(task2$prediction_fileid, function(id) {
 })
 names(pred_filenames) <- team_names
 
-submissions.6e10 <- lapply(names(pred_filenames), function(team) {
+submissions <- lapply(names(pred_filenames), function(team) {
+  
+  # Construct the desired new column names dynamically
+  team_6e10_name <- paste0(team, "_predicted_6e10")
+  team_at8_name <- paste0(team, "_predicted_at8")
   
   # Read in prediction files
   readr::read_csv(pred_filenames[[team]], show_col_types = FALSE) %>%
@@ -162,39 +176,58 @@ submissions.6e10 <- lapply(names(pred_filenames), function(team) {
   janitor::clean_names() %>% 
     
   # Only consider the Donor ID and primary metric from the prediction file
-  select("donor_id", "predicted_6e10") %>%
+  select("donor_id", "predicted_6e10", "predicted_at8") %>%
     
-  # Replace "predicted_ADNC" with the team name for easier identification after
-  # merging with the groundtruth
-  rename(!!team := predicted_6e10) 
+  # Replace prediction colnames to include team name
+  rename_with(
+      .fn = ~ c(team_6e10_name, team_at8_name),
+      .cols = c(predicted_6e10, predicted_at8)
+    )
 }) %>% 
   
   # Merge the prediction columns together
   purrr::reduce(left_join, by="donor_id") %>%
   
   # Merge in the groundtruth target values
-  left_join(truth %>% select("donor_id", "percent_6e10_positive_area"), by="donor_id") %>%
+  left_join(
+    truth %>% select("donor_id", "percent_6e10_positive_area", "percent_at8_positive_area"), 
+    by="donor_id"
+  ) %>%
   
   # Rename "percent_6e10_positive_area" column to "truth"
-  rename(truth = percent_6e10_positive_area)
+  rename_with(
+      .fn = ~ c("truth_6e10", "truth_at8"),
+      .cols = c(percent_6e10_positive_area, percent_at8_positive_area)
+    )
 
 kable(
-  head(submissions.6e10),
-  caption="Preview of Model 6e10 Predictions and Corresponding Groundtruth Values"
+  head(submissions),
+  caption="Preview of Model Predictions and Corresponding Groundtruth Values"
 )
 ```
 
-Next, we perform a pre-bootstrapping verification to ensure the scoring logic
-correctly reproduces the published leaderboard scores _prior_ to any resampling.
-This serves as a critical check on the scoring function.
+Next, we perform a pre-bootstrapping verification to ensure the bootstrapping logic
+correctly reproduces the published Final Round scores _prior_ to any resampling.
+This serves as a critical check on the bootstrapping and scoring functions.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 bs.check <- sapply(names(pred_filenames), function(team) {
+  team_6e10_name <- paste0(team, "_predicted_6e10")
+  team_at8_name <- paste0(team, "_predicted_at8")
+
   apply(matrix(1:nrow(truth), nrow(truth), 1), 2, function(ind) {
-    concordance_correlation_coefficient(
-      submissions.6e10$truth[ind],
-      submissions.6e10[[team]][ind]
+    # Calculate CCC for 6e10 area first
+    ccc.6e10 <- concordance_correlation_coefficient(
+      submissions$truth_6e10[ind],
+      submissions[[team_6e10_name]][ind]
     )
+    # Calculate CCC for AT8 area next
+    ccc.at8 <- concordance_correlation_coefficient(
+      submissions$truth_at8[ind],
+      submissions[[team_at8_name]][ind]
+    )
+    # Return average of the two areas
+    (ccc.6e10 + ccc.at8) / 2
   })
 })
 ```
@@ -204,27 +237,31 @@ kable(
     as_tibble(rownames = "submitterid") %>%
     left_join(task2, by = "submitterid") %>%
     mutate(
-      scores_match = dplyr::near(value, `6e10_CCC`)
+      scores_match = dplyr::near(value, `6e10_AT8_Average_CCC`)
     ) %>%
     select(
       submitterid,
-      bf_calculated_score = value,
-      original_score = `6e10_CCC`,
+      bf_calculated_average = value,
+      original_average = `6e10_AT8_Average_CCC`,
       scores_match
     ),
-  caption='Comparison of "BF-calculated" Scores and Original Scores for 6e10 Positive Area'
+  caption='Comparison of "Bootstrapped" Average Scores (Prior to Resampling) and Original Average Scores'
 )
 ```
 
 The core bootstrapping process is then executed:
 
-* Resample the rows (data points) of the combined data frame 10,000 times 
+* Resample the rows (data points) of the combined dataframe 10,000 times 
 ($N=10,000$) with replacement
 
 * For each of the $N$ bootstrap samples, we re-score every submission using the
-primary challenge metric (Concordance Correlation Coefficient, `CCC`)
+primary challenge metric (Concordance Correlation Coefficient, `CCC`) in the two
+target areas: 6e10 and AT8
 
-This will produce a matrix of 10,000 bootstrapped scores per submission.
+* The final result for each submission on that sample will be the average CCC
+across the two areas
+
+This will produce a matrix of 10,000 bootstrapped average scores per submission.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Set seed for reproducible results (since we're doing a random sample)
@@ -236,11 +273,19 @@ bs_indices <- matrix(1:nrow(truth), nrow(truth), N) %>%
   apply(2, sample, replace = TRUE)
 
 bs <- sapply(names(pred_filenames), function(team) {
+  team_6e10_name <- paste0(team, "_predicted_6e10")
+  team_at8_name <- paste0(team, "_predicted_at8")
+  
   apply(bs_indices, 2, function(ind) {
-    concordance_correlation_coefficient(
-      submissions.6e10$truth[ind],
-      submissions.6e10[[team]][ind]
+    ccc.6e10 <- concordance_correlation_coefficient(
+      submissions$truth_6e10[ind],
+      submissions[[team_6e10_name]][ind]
     )
+    ccc.at8 <- concordance_correlation_coefficient(
+      submissions$truth_at8[ind],
+      submissions[[team_at8_name]][ind]
+    )
+    (ccc.6e10 + ccc.at8) / 2
   })
 })
 ```
@@ -263,8 +308,9 @@ bs <- sapply(names(pred_filenames), function(team) {
 The resulting $10,000 \times \text{number of submissions}$ matrix of bootstrapped
 scores is used to calculate the Bayes Factor (BF) for each submission.
 
-The top-performing model (highest ADNC_QWK score) is automatically set as the
-reference prediction ($BF=0$) against which all other methods are compared.
+The top-performing model (highest average score of `6e10_CCC` and `AT8_CCC`) is 
+automatically set as the reference prediction ($BF=0$) against which all other
+methods are compared.
 
 As established earlier, a Bayes factor $\le 3$ indicates that a method's
 performance is not substantially different from the top performer.
@@ -281,7 +327,7 @@ kable(bf)
 The results are visualized using a combined plot showing two views:
 
 1. **Bootstrapped Score Distribution (left):** boxplot showing the distribution
-of the 10,000 bootstrapped `6e10_CCC` scores for each team. The color indicates
+of the 10,000 bootstrapped average CCC scores for each team. The color indicates
 the BF category.
 
 2. **Bayes Factor Visualization (right):** bar plot showing the calculated BF
@@ -299,7 +345,7 @@ plot <- bs %>%
   tidyr::gather(submission, bs_score) %>%
   left_join(bf) %>%
   mutate(bayes_category=case_when(
-    bayes == 0 ~ "Top Performer(s)",
+    bayes == 0 ~ "Top Performers",
     bayes <= 3 ~ "Bayes Factor ≤3",
     bayes > 3 ~ "Bayes Factor >3")) %>%
   ggplot(aes(
@@ -315,19 +361,19 @@ plot <- bs %>%
     "Bayes Factor >3" = "#B6B5B3"),
     name = NULL) +
   coord_flip() +
-  labs(x="Team", y="Bootstrapped ADNC_QWK\n(num_iterations=10,000)") +
+  labs(x="Team", y="Bootstrapped Average CCC\n(num_iterations=10,000)") +
   theme(
     axis.text.y.left = element_text(size = 12),
     axis.text.x.bottom = element_text(size = 12),
     text = element_text(size = 10),
     legend.text = element_text(size = 10),
-    legend.position = c(0.3, 0.9),
+    legend.position = c(0.25, 0.9),
     legend.background = element_rect(linetype = "solid", color = "black"))
 
 # --- PLOT 2: BF comparison (bar plot) ---
 plot.bf.top <- bf %>% 
   mutate(bayes_category=case_when(
-    bayes == 0 ~ "Top Performer",
+    bayes == 0 ~ "Top Performers",
     bayes <= 3 ~ "Bayes Factor ≤3",
     bayes > 3 ~ "Bayes Factor >3")) %>% 
   ggplot(aes(submission, bayes, fill=bayes_category)) + 
@@ -337,7 +383,7 @@ plot.bf.top <- bf %>%
   theme_classic() + 
   scale_x_discrete(limits=names(sort(colMeans(bs)))) + 
   scale_fill_manual(values = c(
-    "Top Performer" = "#FFBF00", 
+    "Top Performers" = "#FFBF00", 
     'Bayes Factor ≤3' = '#219EE6', 
     "Bayes Factor >3" = "#B6B5B3")) +
   theme(legend.position = "none") +
@@ -346,14 +392,26 @@ plot.bf.top <- bf %>%
     axis.text.x.bottom = element_text(size = 12),
     axis.title.y=element_blank(), 
     axis.text.y=element_blank()) + 
-  labs(y="Bayes Factor\n(top_performer=CMC-TJU)")
+  labs(y="Bayes Factor\n(tie cut-off=3)")
 
 
 ggsave(
   file="sea-ad-dream_task2_BF.svg",
   plot=gridExtra::grid.arrange(plot, plot.bf.top, ncol = 2, widths = c(3, 1)),
-  width = 24,
-  height = 18.6
+  width = 10,
+  height = 8,
+  units = "in"
 )
 ```
+
+## Conclusion ✨
+
+The objective of this analysis was to use the Bayes factor to identify
+submissions that are statistically indistinguishable from the overall top
+performer, using a threshold of $\text{BF} \le 3$ to define a tie.
+
+The analysis confirms that the reference submission, team CMC-TJU ($\text{BF}=0$),
+is the only team whose performance is not substantially different from itself.
+Since no other submissions yielded a Bayes factor $\le 3$,
+**team CMC-TJU is declared the sole "Top Performer" for Task 2 of the SEA-AD DREAM Challenge**.
 
