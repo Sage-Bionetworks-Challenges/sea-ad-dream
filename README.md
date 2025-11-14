@@ -5,7 +5,7 @@ Evaluation workflow for the
 where the main steps are defined in `workflow.cwl`.
 
 The challenge's infrastructure is powered by the [SynapseWorkflowOrchestrator]
-orchesration tool, will continuously monitors the challenge for new submission
+orchestration tool, which continuously monitors the challenge for new submission
 to evaluate.
 
 ## Evaluation Overview
