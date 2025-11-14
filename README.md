@@ -29,10 +29,12 @@ Other metrics returned (but _not_ used for ranking) include:
 
 Metric | Description
 :--:|:--
-`6e10_CCC` | Average Concordance Correlation Coefficients (CCC) computed on the percentages of 6e10 positive areas.
-`AT8_CCC` | Average CCC on the percentages of AT8 positive areas.
-`NeuN_CCC` | Average CCC on the percentages of NeuN positive areas. <br/><br/>Used to break ties on `6e10_CCC` and `AT8_CCC`.
-`GFAP_CCC` | Average CCC on the percentages of GFAP positive areas. <br/><br/>Used to break ties on `NeuN_CCC`.
+`6e10_CCC` | Concordance Correlation Coefficients (CCC) computed on the percentages of 6e10 positive areas.
+`AT8_CCC` | CCC on the percentages of AT8 positive areas.
+`NeuN_CCC` | CCC on the percentages of NeuN positive areas. <br/><br/>Used to break ties on `6e10_CCC` and `AT8_CCC`.
+`GFAP_CCC` | CCC on the percentages of GFAP positive areas. <br/><br/>Used to break ties on `NeuN_CCC`.
+
+Final ranking will be determined by the average CCC on the `6e10_CCC` and `AT8_CCC` areas.
 
 Other metrics returned (but _not_ used for ranking) include:
 * Mean squared errors (MSE)
