@@ -1,7 +1,7 @@
 ---
 title: "Bootstrap analysis: Determine Top Performers - Task1"
 author: "Sage CNB Team"
-date: "2025-11-11"
+date: "2025-11-12"
 output:
   html_document: default
   pdf_document:
@@ -27,12 +27,12 @@ bootstrapping approach combined with a Bayes Factor ($\text{BF}$) calculation.
 This statistical framework allows us to assess the statistical equivalence of
 models across many resampled datasets.
 
-1. **Bootstrapping:** We repeatedly sample with replacement (e.g. 1000-10000
-times) the submitted predictions and the gold standard values. This generates a
+1. **Bootstrapping:** repeatedly sample with replacement (e.g. 1,000 - 10,000
+times) the submitted predictions and the groundtruth values. This generates a
 distribution of performance scores for each participant under various data scenarios.
 
-2. **Bayes Factor (BF):** We calculate the BF for each method relative to the
-top-performing reference method. The BF quantifies the evidence of one model
+2. **Bayes Factor (BF):** calculate the BF for each method relative to the top-
+performing reference method. The BF quantifies the evidence of one model
 being better than another.
 
 ### Determining the Top-Performer(s)
@@ -222,7 +222,7 @@ kable(
       original_score = ADNC_QWK,
       scores_match
     ),
-  caption='Comparison of "Bootstrapping" Scores (Prior to Resampling) and Original Scores'
+  caption='Comparison of "Bootstrapped" Scores (Prior to Resampling) and Original Scores'
 )
 ```
 
@@ -297,8 +297,8 @@ of the 10,000 bootstrapped `ADNC_QWK` scores for each team. The color indicates
 the BF category.
 
 2. **Bayes Factor Visualization (right):** bar plot showing the calculated BF
-relative to the top-performer. The horizontal dashed line indicates the $\text{BF} \le 3$
-cut-off used to determine a tie.
+relative to the top-performer. The horizontal dashed line indicates the 
+$\text{BF} \le 3$ cut-off used to determine a tie.
 
 Methods falling into the "$\text{BF} \le 3$" category, including the top 
 performer ($BF=0$), will be declared "Top Performers" for this challenge task.
@@ -311,7 +311,7 @@ plot <- bs %>%
   tidyr::gather(submission, bs_score) %>%
   left_join(bf) %>%
   mutate(bayes_category=case_when(
-    bayes == 0 ~ "Top Performer(s)",
+    bayes == 0 ~ "Top Performers",
     bayes <= 3 ~ "Bayes Factor ≤3",
     bayes > 3 ~ "Bayes Factor >3")) %>%
   ggplot(aes(
@@ -339,7 +339,7 @@ plot <- bs %>%
 # --- PLOT 2: BF comparison (bar plot) ---
 plot.bf.top <- bf %>% 
   mutate(bayes_category=case_when(
-    bayes == 0 ~ "Top Performer",
+    bayes == 0 ~ "Top Performers",
     bayes <= 3 ~ "Bayes Factor ≤3",
     bayes > 3 ~ "Bayes Factor >3")) %>% 
   ggplot(aes(submission, bayes, fill=bayes_category)) + 
@@ -349,7 +349,7 @@ plot.bf.top <- bf %>%
   theme_classic() + 
   scale_x_discrete(limits=names(sort(colMeans(bs)))) + 
   scale_fill_manual(values = c(
-    "Top Performer" = "#FFBF00", 
+    "Top Performers" = "#FFBF00", 
     'Bayes Factor ≤3' = '#219EE6', 
     "Bayes Factor >3" = "#B6B5B3")) +
   theme(legend.position = "none") +

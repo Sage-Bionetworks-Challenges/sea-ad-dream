@@ -1376,10 +1376,10 @@
 <line x1='1214.08' y1='174.53' x2='1190.85' y2='174.53' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt;' />
 <polygon points='1229.57,214.15 1214.08,214.15 1214.08,134.91 1229.57,134.91 1229.57,214.15 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF;' />
 <line x1='1222.22' y1='214.15' x2='1222.22' y2='134.91' style='stroke-width: 2.13; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
-<line x1='1237.61' y1='68.87' x2='1237.61' y2='68.87' style='stroke-width: 2.56; stroke: #7F7F7F; stroke-linecap: butt;' />
-<line x1='1237.61' y1='68.87' x2='1237.61' y2='68.87' style='stroke-width: 2.56; stroke: #7F7F7F; stroke-linecap: butt;' />
-<polygon points='1237.61,108.49 1237.61,108.49 1237.61,29.25 1237.61,29.25 1237.61,108.49 ' style='stroke-width: 2.56; stroke: #7F7F7F; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF;' />
-<line x1='1237.61' y1='108.49' x2='1237.61' y2='29.25' style='stroke-width: 2.13; stroke: #7F7F7F; stroke-linecap: butt; stroke-linejoin: miter;' />
+<line x1='1237.61' y1='68.87' x2='1237.61' y2='68.87' style='stroke-width: 2.56; stroke: #FFBF00; stroke-linecap: butt;' />
+<line x1='1237.61' y1='68.87' x2='1237.61' y2='68.87' style='stroke-width: 2.56; stroke: #FFBF00; stroke-linecap: butt;' />
+<polygon points='1237.61,108.49 1237.61,108.49 1237.61,29.25 1237.61,29.25 1237.61,108.49 ' style='stroke-width: 2.56; stroke: #FFBF00; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF;' />
+<line x1='1237.61' y1='108.49' x2='1237.61' y2='29.25' style='stroke-width: 2.13; stroke: #FFBF00; stroke-linecap: butt; stroke-linejoin: miter;' />
 <rect x='126.56' y='5.48' width='1163.96' height='1288.98' style='stroke-width: 1.07; stroke: #333333;' />
 </g>
 <g clip-path='url(#cpMC4wMHwxNzI4LjAwfDAuMDB8MTMzOS4yMA==)'>
@@ -1418,15 +1418,23 @@
 <text x='708.54' y='1320.67' text-anchor='middle' style='font-size: 10.00px; font-family: "Nimbus Sans";' textLength='119.72px' lengthAdjust='spacingAndGlyphs'>Bootstrapped ADNC_QWK</text>
 <text x='708.54' y='1331.47' text-anchor='middle' style='font-size: 10.00px; font-family: "Nimbus Sans";' textLength='108.34px' lengthAdjust='spacingAndGlyphs'>(num_iterations=10,000)</text>
 <text transform='translate(12.77,649.97) rotate(-90)' text-anchor='middle' style='font-size: 10.00px; font-family: "Nimbus Sans";' textLength='24.56px' lengthAdjust='spacingAndGlyphs'>Team</text>
-<rect x='422.70' y='120.26' width='106.09' height='28.24' style='stroke-width: 1.07; fill: #FFFFFF;' />
-<rect x='428.18' y='125.74' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<polyline points='436.82,141.29 436.82,138.70 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
-<polyline points='436.82,130.06 436.82,127.47 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
-<rect x='430.34' y='130.06' width='12.96' height='8.64' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF;' />
-<polyline points='430.34,134.38 443.30,134.38 ' style='stroke-width: 2.13; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
-<polyline points='436.82,141.29 436.82,141.29 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
-<polyline points='436.82,127.47 436.82,127.47 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
-<text x='450.94' y='138.02' style='font-size: 10.00px; font-family: "Nimbus Sans";' textLength='72.16px' lengthAdjust='spacingAndGlyphs'>Bayes Factor &gt;3</text>
+<rect x='422.70' y='111.62' width='106.09' height='45.52' style='stroke-width: 1.07; fill: #FFFFFF;' />
+<rect x='428.18' y='117.10' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<polyline points='436.82,132.65 436.82,130.06 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
+<polyline points='436.82,121.42 436.82,118.83 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
+<rect x='430.34' y='121.42' width='12.96' height='8.64' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF;' />
+<polyline points='430.34,125.74 443.30,125.74 ' style='stroke-width: 2.13; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
+<polyline points='436.82,132.65 436.82,132.65 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
+<polyline points='436.82,118.83 436.82,118.83 ' style='stroke-width: 2.56; stroke: #B6B5B3; stroke-linecap: butt; stroke-linejoin: miter;' />
+<rect x='428.18' y='134.38' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<polyline points='436.82,149.93 436.82,147.34 ' style='stroke-width: 2.56; stroke: #FFBF00; stroke-linecap: butt; stroke-linejoin: miter;' />
+<polyline points='436.82,138.70 436.82,136.11 ' style='stroke-width: 2.56; stroke: #FFBF00; stroke-linecap: butt; stroke-linejoin: miter;' />
+<rect x='430.34' y='138.70' width='12.96' height='8.64' style='stroke-width: 2.56; stroke: #FFBF00; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF;' />
+<polyline points='430.34,143.02 443.30,143.02 ' style='stroke-width: 2.13; stroke: #FFBF00; stroke-linecap: butt; stroke-linejoin: miter;' />
+<polyline points='436.82,149.93 436.82,149.93 ' style='stroke-width: 2.56; stroke: #FFBF00; stroke-linecap: butt; stroke-linejoin: miter;' />
+<polyline points='436.82,136.11 436.82,136.11 ' style='stroke-width: 2.56; stroke: #FFBF00; stroke-linecap: butt; stroke-linejoin: miter;' />
+<text x='450.94' y='129.38' style='font-size: 10.00px; font-family: "Nimbus Sans";' textLength='72.16px' lengthAdjust='spacingAndGlyphs'>Bayes Factor &gt;3</text>
+<text x='450.94' y='146.66' style='font-size: 10.00px; font-family: "Nimbus Sans";' textLength='68.47px' lengthAdjust='spacingAndGlyphs'>Top Performers</text>
 </g>
 <defs>
   <clipPath id='cpMTI5Ni4wMHwxNzI4LjAwfDAuMDB8MTMzOS4yMA=='>
