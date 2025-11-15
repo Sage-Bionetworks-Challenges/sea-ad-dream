@@ -17,8 +17,8 @@ by assessing for "tied" performance between submissions.
 ### Task 1 Evaluation Overview
 
 The primary metric used to evaluate submissions for Task 1 is the Quadratic
-Weighted Kappa (`ADNC_QWK`), computed on the predicted Alzheimer's
-Disease Neuropathology Consensus (ADNC) scores.
+Weighted Kappa (`QWK`), computed on the predicted overall AD Neuropathological
+Change (ADNC) scores.
 
 ### Methodology
 
