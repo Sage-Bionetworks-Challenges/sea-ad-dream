@@ -4,8 +4,6 @@ author: "Sage CNB Team"
 date: "2025-11-12"
 output:
   html_document: default
-  pdf_document:
-    latex_engine: xelatex
 ---
 
 ## Introduction & Goal 🎯

@@ -9,10 +9,12 @@ output:
 ## Introduction & Goal 🎯
 
 This notebook compares _all_ final submissions submitted to the
-[SEA-AD DREAM Challenge](https://www.synapse.org/sea_ad_dream) using the same
-methodology used in the `determine-top-performers` notebooks. A primary goal of
-this analysis is to assess the performance of AI agent submissions relative to 
-the human submissions.
+[SEA-AD DREAM Challenge](https://www.synapse.org/sea_ad_dream), including those
+submitted to the Agent tracks. A primary goal of this analysis is to assess the
+performance of AI agent submissions relative to the human submissions.
+
+The comparison will perform the same methodology used in the `determine-top-performers` notebooks.
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 suppressPackageStartupMessages(library(ggplot2))
@@ -24,12 +26,11 @@ suppressPackageStartupMessages(library(synapser))
 syn$login(silent=TRUE)
 ```
 
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-# --- Helper functions ---
-
+# --- Import scoring functions ---
 reticulate::source_python("../evaluation/dream_evaluation.py")
 
+# --- Helper functions ---
 get_name <- function(id) {
   name <- tryCatch({
     syn$getUserProfile(id)$userName
@@ -70,6 +71,7 @@ truth <- readr::read_csv(syn$get("syn70199164")$path) %>%
 ## Prediction files
 task1 <- syn$tableQuery(
   "SELECT
+    evaluationid,
     id,
     submitterid,
     ADNC_QWK,
@@ -83,7 +85,14 @@ task1 <- syn$tableQuery(
     AND submitterid <> 3393723
   ORDER BY
     ADNC_QWK DESC"
-)$asDataFrame()
+)$asDataFrame() %>%
+  
+  # Add a note on whether the submission is for the Agent track
+  mutate(
+    notes = if_else(evaluationid == "9617461", "Agent track submission", "")
+  ) %>%
+  select(-evaluationid)
+  
 
 # Replace IDs with usernames/team names.
 task1$submitterid <- as.character(task1$submitterid)
@@ -96,7 +105,7 @@ task1$submitterid <- team_names
 row.names(task1) <- NULL
 kable(
   task1 %>% select(-prediction_fileid),
-  caption="Task 1 Final Round Submissions (Human and AI Agent)"
+  caption="Task 1 Final Round Submissions (Both Human and Agent Tracks)"
 )
 ```
 
@@ -217,7 +226,13 @@ bf <- computeBayesFactor(bs, refPredIndex = 1, invertBayes = FALSE) %>%
   mutate(
     bayes = if_else(submission == "longminh1911", 0, bayes)
   )
-kable(bf)
+kable(
+  bf %>%
+  left_join(
+    task1 %>% select(submitterid, notes),
+    by = c("submission" = "submitterid")
+  )
+)
 ```
 
 ## Results & Conclusion 🏆

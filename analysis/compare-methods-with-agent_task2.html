@@ -362,17 +362,26 @@ Task2</h1>
 <h2>Introduction &amp; Goal 🎯</h2>
 <p>This notebook compares <em>all</em> final submissions submitted to
 the <a href="https://www.synapse.org/sea_ad_dream">SEA-AD DREAM
-Challenge</a> using the same methodology used in the
-<code>determine-top-performers</code> notebooks. A primary goal of this
-analysis is to assess the performance of AI agent submissions relative
-to the human submissions.</p>
+Challenge</a>, including those submitted to the Agent tracks. A primary
+goal of this analysis is to assess the performance of AI agent
+submissions relative to the human submissions.</p>
+<p>The comparison will perform the same methodology used in the
+<code>determine-top-performers</code> notebooks.</p>
 <table>
-<caption>Task 2 Final Round Submissions (Human and AI Agent)</caption>
+<caption>Task 2 Final Round Submissions (Both Human and Agent
+Tracks)</caption>
+<colgroup>
+<col width="11%" />
+<col width="24%" />
+<col width="30%" />
+<col width="33%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="right">id</th>
 <th align="left">submitterid</th>
 <th align="right">6e10_AT8_Average_CCC</th>
+<th align="left">notes</th>
 </tr>
 </thead>
 <tbody>
@@ -380,56 +389,67 @@ to the human submissions.</p>
 <td align="right">9761305</td>
 <td align="left">CMC-TJU</td>
 <td align="right">0.4763385</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761321</td>
 <td align="left">gisl7</td>
 <td align="right">0.4356768</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9761297</td>
 <td align="left">BioICAR</td>
 <td align="right">0.3756077</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761090</td>
 <td align="left">Metformin-121</td>
 <td align="right">0.3475705</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9760855</td>
 <td align="left">nkck</td>
 <td align="right">0.3333725</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761236</td>
 <td align="left">christina.hshi</td>
 <td align="right">0.3054123</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9761139</td>
 <td align="left">TeamGeckoAD</td>
 <td align="right">0.2861303</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761292</td>
 <td align="left">Mount_Sinai_Team</td>
 <td align="right">0.2736089</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9761233</td>
 <td align="left">TREATS</td>
 <td align="right">0.2630888</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761272</td>
 <td align="left">longminh1911</td>
 <td align="right">0.1837345</td>
+<td align="left">Agent track submission</td>
 </tr>
 <tr class="odd">
 <td align="right">9761251</td>
 <td align="left">danielr</td>
 <td align="right">0.1053188</td>
+<td align="left"></td>
 </tr>
 </tbody>
 </table>
@@ -782,52 +802,64 @@ bs &lt;- sapply(names(pred_filenames), function(team) {
 <tr class="header">
 <th align="left">submission</th>
 <th align="right">bayes</th>
+<th align="left">notes</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">CMC-TJU</td>
 <td align="right">0.000000</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">gisl7</td>
 <td align="right">3.837929</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">BioICAR</td>
 <td align="right">399.000000</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">Metformin-121</td>
 <td align="right">383.615385</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">nkck</td>
 <td align="right">25.315790</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">christina.hshi</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">TeamGeckoAD</td>
 <td align="right">1427.571429</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">Mount_Sinai_Team</td>
 <td align="right">587.235294</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">TREATS</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">longminh1911</td>
 <td align="right">Inf</td>
+<td align="left">Agent track submission</td>
 </tr>
 <tr class="odd">
 <td align="left">danielr</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 </tbody>
 </table>

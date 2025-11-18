@@ -362,17 +362,20 @@ Task1</h1>
 <h2>Introduction &amp; Goal 🎯</h2>
 <p>This notebook compares <em>all</em> final submissions submitted to
 the <a href="https://www.synapse.org/sea_ad_dream">SEA-AD DREAM
-Challenge</a> using the same methodology used in the
-<code>determine-top-performers</code> notebooks. A primary goal of this
-analysis is to assess the performance of AI agent submissions relative
-to the human submissions.</p>
+Challenge</a>, including those submitted to the Agent tracks. A primary
+goal of this analysis is to assess the performance of AI agent
+submissions relative to the human submissions.</p>
+<p>The comparison will perform the same methodology used in the
+<code>determine-top-performers</code> notebooks.</p>
 <table>
-<caption>Task 1 Final Round Submissions (Human and AI Agent)</caption>
+<caption>Task 1 Final Round Submissions (Both Human and Agent
+Tracks)</caption>
 <thead>
 <tr class="header">
 <th align="right">id</th>
 <th align="left">submitterid</th>
 <th align="right">ADNC_QWK</th>
+<th align="left">notes</th>
 </tr>
 </thead>
 <tbody>
@@ -380,71 +383,85 @@ to the human submissions.</p>
 <td align="right">9761204</td>
 <td align="left">gisl7</td>
 <td align="right">1.0000000</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761261</td>
 <td align="left">longminh1911</td>
 <td align="right">1.0000000</td>
+<td align="left">Agent track submission</td>
 </tr>
 <tr class="odd">
 <td align="right">9761304</td>
 <td align="left">CMC-TJU</td>
 <td align="right">0.9786600</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761281</td>
 <td align="left">BioICAR</td>
 <td align="right">0.9321410</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9761133</td>
 <td align="left">Metformin-121</td>
 <td align="right">0.7550492</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761109</td>
 <td align="left">raesalves</td>
 <td align="right">0.6236629</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9761284</td>
 <td align="left">UWisc-Madison</td>
 <td align="right">0.5254374</td>
+<td align="left">Agent track submission</td>
 </tr>
 <tr class="even">
 <td align="right">9761137</td>
 <td align="left">TeamGeckoAD</td>
 <td align="right">0.4976991</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9760854</td>
 <td align="left">nkck</td>
 <td align="right">0.4951076</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761319</td>
 <td align="left">ADMIL</td>
 <td align="right">0.4418484</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9761235</td>
 <td align="left">christina.hshi</td>
 <td align="right">0.3883122</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761311</td>
 <td align="left">Mount_Sinai_Team</td>
 <td align="right">0.2647668</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="right">9761249</td>
 <td align="left">danielr</td>
 <td align="right">0.2039113</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="right">9761232</td>
 <td align="left">TREATS</td>
 <td align="right">0.0754129</td>
+<td align="left"></td>
 </tr>
 </tbody>
 </table>
@@ -730,64 +747,79 @@ bs &lt;- sapply(names(pred_filenames), function(team) {
 <tr class="header">
 <th align="left">submission</th>
 <th align="right">bayes</th>
+<th align="left">notes</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">gisl7</td>
 <td align="right">0.000000</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">longminh1911</td>
 <td align="right">0.000000</td>
+<td align="left">Agent track submission</td>
 </tr>
 <tr class="odd">
 <td align="left">CMC-TJU</td>
 <td align="right">7.025682</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">BioICAR</td>
 <td align="right">22.419204</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">Metformin-121</td>
 <td align="right">2499.000000</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">raesalves</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">UWisc-Madison</td>
 <td align="right">Inf</td>
+<td align="left">Agent track submission</td>
 </tr>
 <tr class="even">
 <td align="left">TeamGeckoAD</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">nkck</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">ADMIL</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">christina.hshi</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">Mount_Sinai_Team</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">danielr</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">TREATS</td>
 <td align="right">Inf</td>
+<td align="left"></td>
 </tr>
 </tbody>
 </table>
