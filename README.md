@@ -1,12 +1,27 @@
 # SEA-AD DREAM Challenge Evaluation
 
-Evaluation workflow for the 
-[SEA-AD DREAM Challenge: Predicting Alzheimer’s Pathology from scRNA-seq Data],
-where the main steps are defined in `workflow.cwl`.
+Repository containing the technical infrastructure and code for the
+[SEA-AD DREAM Challenge: Predicting Alzheimer’s Pathology from scRNA-seq Data]
 
-The challenge's infrastructure is powered by the [SynapseWorkflowOrchestrator]
-orchestration tool, which continuously monitors the challenge for new submission
-to evaluate.
+The challenge infrastructure is powered by the [SynapseWorkflowOrchestrator]
+orchestration tool, continuously monitors the challenge for new submissions,
+automatically processing and evaluating them using the steps defined in
+`workflow.cwl` and `workflow-final.cwl`.
+
+### Folder structure
+
+```
+sea-ad-dream
+├── analysis      // notebooks for determining top performers and other post-challenge analyses
+├── dummy-model   // minimal Docker model for dry-running the workflow
+├── evaluation    // core scoring scripts and final metric calculation logic
+├── README.md
+├── steps                 // individual CWL scripts (called by the main workflow CWLs)
+├── workflow-final.cwl    // CWL workflow for evaluating Final Round submissions
+├── workflow.cwl          // CWL workflow for evaluating Leaderboard Round submissions
+└── writeup-workflow.cwl  // CWL workflow to validate writeup submissions
+
+```
 
 ## Evaluation Overview
 
