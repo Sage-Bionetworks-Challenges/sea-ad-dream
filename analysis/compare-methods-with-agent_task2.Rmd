@@ -1,0 +1,319 @@
+---
+title: "Compare Methods with AI Agent Submissions - Task2"
+author: "Sage CNB Team"
+date: "2025-11-17"
+output:
+  html_document: default
+---
+
+## Introduction & Goal 🎯
+
+This notebook compares _all_ final submissions submitted to the
+[SEA-AD DREAM Challenge](https://www.synapse.org/sea_ad_dream) using the same
+methodology used in the `determine-top-performers` notebooks. A primary goal of
+this analysis is to assess the performance of AI agent submissions relative to 
+the human submissions.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(synapser))
+
+# Login to Synapse.
+syn$login(silent=TRUE)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# --- Helper functions ---
+
+reticulate::source_python("../evaluation/dream_evaluation.py")
+
+get_name <- function(id) {
+  name <- tryCatch({
+    syn$getUserProfile(id)$userName
+  }, error = function(err) {
+    syn$getTeam(id)$name
+  })
+  name
+}
+
+computeBayesFactor <- function(bootstrapMetricMatrix,
+                               refPredIndex,
+                               invertBayes) {
+  M <- as.data.frame(bootstrapMetricMatrix - bootstrapMetricMatrix[,refPredIndex])
+  K <- apply(M ,2, function(x) {
+    k <- sum(x >= 0)/sum(x < 0)
+    
+    # Logic handles whether reference column is the best set of predictions.
+    if(sum(x >= 0) > sum(x < 0)){
+      return(k)
+    }else{
+      return(1/k)
+    }
+  })
+  K[refPredIndex] <- 0
+  if(invertBayes == T){K <- 1/K}
+  return(K)
+}
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+## Groundtruth file
+truth <- readr::read_csv(syn$get("syn70199164")$path) %>%
+  janitor::clean_names() %>%  # Clean up colnames
+  select(-x1)  # Remove `x1` column from df
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+## Prediction files
+task2 <- syn$tableQuery(
+  "SELECT
+    id,
+    submitterid,
+    `6e10_AT8_Average_CCC`,
+    prediction_fileid
+  FROM
+    syn68896134 
+  WHERE
+    evaluationid IN (9617460, 9617463)
+    AND status = 'ACCEPTED'
+    AND submission_status = 'SCORED'
+    AND submitterid <> 3393723
+  ORDER BY
+    `6e10_AT8_Average_CCC` DESC"
+)$asDataFrame()
+
+# Replace IDs with usernames/team names.
+task2$submitterid <- as.character(task2$submitterid)
+team_names <- sapply(task2$submitterid, function(sub) {
+  get_name(sub)
+})
+task2$submitterid <- team_names
+
+# Drop row.names for easier table reading.
+row.names(task2) <- NULL
+kable(
+  task2 %>% select(-prediction_fileid),
+  caption="Task 2 Final Round Submissions (Human and AI Agent)"
+)
+```
+
+
+## Bootstrapping Procedure 📊
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+pred_filenames <- lapply(task2$prediction_fileid, function(id) {
+  syn$get(id)$path
+})
+names(pred_filenames) <- team_names
+
+submissions <- lapply(names(pred_filenames), function(team) {
+  
+  # Construct the desired new column names dynamically
+  team_6e10_name <- paste0(team, "_predicted_6e10")
+  team_at8_name <- paste0(team, "_predicted_at8")
+  
+  # Read in prediction files
+  readr::read_csv(pred_filenames[[team]], show_col_types = FALSE) %>%
+  
+  # Clean up column names (removes spaces, special chars)
+  janitor::clean_names() %>% 
+    
+  # Only consider the Donor ID and primary metric from the prediction file
+  select("donor_id", "predicted_6e10", "predicted_at8") %>%
+    
+  # Replace prediction colnames to include team name
+  rename_with(
+      .fn = ~ c(team_6e10_name, team_at8_name),
+      .cols = c(predicted_6e10, predicted_at8)
+    )
+}) %>% 
+  
+  # Merge the prediction columns together
+  purrr::reduce(left_join, by="donor_id") %>%
+  
+  # Merge in the groundtruth target values
+  left_join(
+    truth %>% select("donor_id", "percent_6e10_positive_area", "percent_at8_positive_area"), 
+    by="donor_id"
+  ) %>%
+  
+  # Rename "percent_6e10_positive_area" column to "truth"
+  rename_with(
+      .fn = ~ c("truth_6e10", "truth_at8"),
+      .cols = c(percent_6e10_positive_area, percent_at8_positive_area)
+    )
+
+kable(
+  head(submissions),
+  caption="Preview of Model Predictions and Corresponding Groundtruth Values"
+)
+```
+
+Double-check that the bootstrapping logic is correct before running the
+resource-intensive bootstrapping ($N=10,000$)./
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+bs.check <- sapply(names(pred_filenames), function(team) {
+  team_6e10_name <- paste0(team, "_predicted_6e10")
+  team_at8_name <- paste0(team, "_predicted_at8")
+
+  apply(matrix(1:nrow(truth), nrow(truth), 1), 2, function(ind) {
+    # Calculate CCC for 6e10 area first
+    ccc.6e10 <- concordance_correlation_coefficient(
+      submissions$truth_6e10[ind],
+      submissions[[team_6e10_name]][ind]
+    )
+    # Calculate CCC for AT8 area next
+    ccc.at8 <- concordance_correlation_coefficient(
+      submissions$truth_at8[ind],
+      submissions[[team_at8_name]][ind]
+    )
+    # Return average of the two areas
+    (ccc.6e10 + ccc.at8) / 2
+  })
+})
+
+kable(
+  bs.check %>%
+    as_tibble(rownames = "submitterid") %>%
+    left_join(task2, by = "submitterid") %>%
+    mutate(
+      scores_match = dplyr::near(value, `6e10_AT8_Average_CCC`)
+    ) %>%
+    select(
+      submitterid,
+      bf_calculated_average = value,
+      original_average = `6e10_AT8_Average_CCC`,
+      scores_match
+    ),
+  caption='Comparison of "Bootstrapped" Average Scores (Prior to Resampling) and Original Average Scores'
+)
+```
+
+Since the scores match with the original scores, we can now proceed with the 
+official bootstrapping.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Set seed for reproducible results (since we're doing a random sample)
+set.seed(202511)
+
+# Run bootstrapping.
+N <- 10000
+bs_indices <- matrix(1:nrow(truth), nrow(truth), N) %>%
+  apply(2, sample, replace = TRUE)
+
+bs <- sapply(names(pred_filenames), function(team) {
+  team_6e10_name <- paste0(team, "_predicted_6e10")
+  team_at8_name <- paste0(team, "_predicted_at8")
+  
+  apply(bs_indices, 2, function(ind) {
+    ccc.6e10 <- concordance_correlation_coefficient(
+      submissions$truth_6e10[ind],
+      submissions[[team_6e10_name]][ind]
+    )
+    ccc.at8 <- concordance_correlation_coefficient(
+      submissions$truth_at8[ind],
+      submissions[[team_at8_name]][ind]
+    )
+    (ccc.6e10 + ccc.at8) / 2
+  })
+})
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+##
+## Analysis for running on a subset of the data.
+## Saving here in case we need it.
+##
+# sample_percentage <- 0.1
+# number_of_samples <- round(nrow(truth) * sample_percentage)
+# bs <- sapply(names(pred_filenames), function(team) {
+#   apply(bs_indices[1:number_of_samples,], 2, function(ind) {
+#     cohen_kappa_score(submissions$truth[ind], submissions[[team]][ind], weights="quadratic")
+#   })
+# })
+```
+
+## Bayes Factor Calculation 📈
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+bf <- computeBayesFactor(bs, refPredIndex = 1, invertBayes = FALSE) %>%
+  as_tibble(rownames = "submission") %>%
+  rename(bayes = value)
+kable(bf)
+```
+
+## Results & Conclusion 🏆
+
+```{r echo=FALSE, message=FALSE, warnings=FALSE}
+
+# --- PLOT 1: Bootstrapped score distribution (boxplot) ---
+plot <- bs %>%
+  as_tibble() %>%
+  tidyr::gather(submission, bs_score) %>%
+  left_join(bf) %>%
+  mutate(bayes_category=case_when(
+    bayes == 0 ~ "Top Performers",
+    bayes <= 3 ~ "Bayes Factor ≤3",
+    bayes > 3 ~ "Bayes Factor >3")) %>%
+  ggplot(aes(
+    x = forcats::fct_reorder(submission, bs_score, .fun = mean),
+    y = bs_score,
+    color = bayes_category
+  )) +
+  geom_boxplot(lwd = 1.2, median.linewidth = 1) +
+  theme_bw() +
+  scale_color_manual(values = c(
+    "Top Performers" = "#FFBF00", 
+    'Bayes Factor ≤3' = '#219EE6', 
+    "Bayes Factor >3" = "#B6B5B3"),
+    name = NULL) +
+  coord_flip() +
+  labs(x="Team", y="Bootstrapped Average CCC\n(num_iterations=10,000)") +
+  theme(
+    axis.text.y.left = element_text(size = 12),
+    axis.text.x.bottom = element_text(size = 12),
+    text = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    legend.position = c(0.2, 0.9),
+    legend.background = element_rect(linetype = "solid", color = "black"))
+
+# --- PLOT 2: BF comparison (bar plot) ---
+plot.bf.top <- bf %>% 
+  mutate(bayes_category=case_when(
+    bayes == 0 ~ "Top Performers",
+    bayes <= 3 ~ "Bayes Factor ≤3",
+    bayes > 3 ~ "Bayes Factor >3")) %>% 
+  ggplot(aes(submission, bayes, fill=bayes_category)) + 
+  geom_bar(stat='identity') + 
+  coord_flip(ylim = c(0, 20)) +
+  geom_hline(yintercept = 3, linetype = 2, lwd = 1.2, color="#7d2929") +
+  theme_classic() + 
+  scale_x_discrete(limits=names(sort(colMeans(bs)))) + 
+  scale_fill_manual(values = c(
+    "Top Performers" = "#FFBF00", 
+    'Bayes Factor ≤3' = '#219EE6', 
+    "Bayes Factor >3" = "#B6B5B3")) +
+  theme(legend.position = "none") +
+  theme(
+    text = element_text(size = 10),
+    axis.text.x.bottom = element_text(size = 12),
+    axis.title.y=element_blank(), 
+    axis.text.y=element_blank()) + 
+  labs(y="Bayes Factor\n(tie cut-off=3)")
+
+
+ggsave(
+  file="figures/sea-ad-dream_all-methods_task2.svg",
+  plot=gridExtra::grid.arrange(plot, plot.bf.top, ncol = 2, widths = c(3, 1)),
+  width = 10,
+  height = 8,
+  units = "in"
+)
+```
+
+Adding in the AI Agent submissions did not affect the ranking for Task 2 - team
+CMC-TJU remains the sole "Top Performer" for Task 2 of the SEA-AD DREAM Challenge.
+
