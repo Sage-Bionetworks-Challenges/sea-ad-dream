@@ -1,4 +1,4 @@
-# SEA-AD DREAM Challenge Evaluation
+# SEA-AD DREAM Challenge Infrastructure
 
 Repository containing the technical infrastructure and code for the
 [SEA-AD DREAM Challenge: Predicting Alzheimer’s Pathology from scRNA-seq Data]
