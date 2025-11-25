@@ -14,12 +14,12 @@ automatically processing and evaluating them using the steps defined in
 sea-ad-dream
 ├── analysis      // notebooks for determining top performers and other post-challenge analyses
 ├── dummy-model   // minimal Docker model for dry-running the workflow
-├── evaluation    // core scoring scripts and final metric calculation logic
+├── evaluation    // core scoring and validation scripts
 ├── README.md
 ├── steps                 // individual CWL scripts (called by the main workflow CWLs)
 ├── workflow-final.cwl    // CWL workflow for evaluating Final Round submissions
 ├── workflow.cwl          // CWL workflow for evaluating Leaderboard Round submissions
-└── writeup-workflow.cwl  // CWL workflow to validate writeup submissions
+└── writeup-workflow.cwl  // CWL workflow to validate and archive writeup submissions
 
 ```
 
